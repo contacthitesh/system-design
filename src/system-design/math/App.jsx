@@ -402,10 +402,29 @@ export default function App() {
           <div style={{ color: "#444", fontSize: "12px", fontFamily: "'Courier New', monospace" }}>
             {sections.length} CATEGORIES · {sections.reduce((a, s) => a + s.data.length, 0)} NUMBERS TO KNOW
           </div>
-          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center" }}>
             {["🧠 Memorize latency", "📐 QPS formula", "💾 Storage sizing", "🔢 Powers of 2"].map(t => (
               <span key={t} style={{ color: "#333", fontSize: "11px" }}>{t}</span>
             ))}
+            {/* ✅ Link to System Design Guide */}
+            <a
+              href="/system_design_guide.html"
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                background: "#00FF9415",
+                border: "1px solid #00FF9440",
+                color: "#00FF94",
+                fontSize: "11px",
+                fontFamily: "'Courier New', monospace",
+                padding: "4px 12px",
+                borderRadius: "6px",
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              📐 System Design Guide →
+            </a>
           </div>
         </div>
       </div>
