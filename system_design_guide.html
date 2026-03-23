@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Design Interview Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #2a2a3a;
+    --accent: #6c63ff;
+    --accent2: #ff6b6b;
+    --accent3: #00d4aa;
+    --accent4: #ffd166;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Syne', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(108,99,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108,99,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    padding: 60px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(108,99,255,0.12);
+    border: 1px solid rgba(108,99,255,0.3);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+  }
+
+  h1 span {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-family: var(--body);
+    font-weight: 300;
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 580px;
+    line-height: 1.6;
+  }
+
+  /* Stats bar */
+  .stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-num {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent3);
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Section titles */
+  .section-title {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Framework section */
+  .framework-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .step-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+    cursor: default;
+  }
+
+  .step-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .step-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    letter-spacing: 0.1em;
+  }
+
+  .step-title {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .step-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .step-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .step-items li {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text);
+    padding: 4px 8px;
+    background: rgba(255,255,255,0.03);
+    border-left: 2px solid var(--accent);
+    opacity: 0.85;
+  }
+
+  /* Time allocation */
+  .time-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px;
+    margin-bottom: 48px;
+  }
+
+  .time-segments {
+    display: flex;
+    height: 48px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 16px 0;
+    gap: 2px;
+  }
+
+  .seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: #000;
+    transition: flex 0.3s;
+    cursor: default;
+  }
+
+  .seg:hover { filter: brightness(1.15); }
+  .seg-1 { background: var(--accent); flex: 5; }
+  .seg-2 { background: var(--accent3); flex: 15; }
+  .seg-3 { background: var(--accent4); flex: 20; }
+  .seg-4 { background: #ff9f43; flex: 20; }
+  .seg-5 { background: var(--accent2); flex: 15; }
+  .seg-6 { background: #a29bfe; flex: 5; }
+
+  .time-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Topics grid */
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+
+  .topic-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .topic-card:hover { border-color: var(--accent3); }
+
+  .topic-icon {
+    font-size: 22px;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .topic-name {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .topic-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    background: rgba(108,99,255,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(108,99,255,0.2);
+  }
+
+  .tag.green { background: rgba(0,212,170,0.1); color: var(--accent3); border-color: rgba(0,212,170,0.2); }
+  .tag.yellow { background: rgba(255,209,102,0.1); color: var(--accent4); border-color: rgba(255,209,102,0.2); }
+  .tag.red { background: rgba(255,107,107,0.1); color: var(--accent2); border-color: rgba(255,107,107,0.2); }
+
+  /* Estimation cheat sheet */
+  .cheat-sheet {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px;
+    margin-bottom: 48px;
+  }
+
+  .cheat-title {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  .table-wrapper { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12.5px;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: rgba(108,99,255,0.08);
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(42,42,58,0.5);
+    color: var(--text);
+  }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  td:first-child { color: var(--accent3); }
+
+  /* Do/Don't section */
+  .dos-donts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  @media (max-width: 600px) {
+    .dos-donts { grid-template-columns: 1fr; }
+    h1 { font-size: 28px; }
+  }
+
+  .do-card, .dont-card {
+    background: var(--card);
+    border-radius: 4px;
+    padding: 24px;
+  }
+
+  .do-card {
+    border: 1px solid rgba(0,212,170,0.3);
+  }
+
+  .dont-card {
+    border: 1px solid rgba(255,107,107,0.3);
+  }
+
+  .card-header {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .do-card .card-header { color: var(--accent3); }
+  .dont-card .card-header { color: var(--accent2); }
+
+  .check-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .check-list li {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    padding-left: 20px;
+    position: relative;
+  }
+
+  .check-list li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    font-size: 10px;
+    top: 3px;
+  }
+
+  .do-card .check-list li::before { color: var(--accent3); }
+  .dont-card .check-list li::before { color: var(--accent2); }
+
+  /* Common problems */
+  .problems-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 48px;
+  }
+
+  .problem-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    transition: border-color 0.2s;
+  }
+
+  .problem-item:hover { border-color: var(--accent); }
+
+  .problem-name {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .problem-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .diff-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .diff-badge.easy { background: rgba(0,212,170,0.15); color: var(--accent3); }
+  .diff-badge.medium { background: rgba(255,209,102,0.15); color: var(--accent4); }
+  .diff-badge.hard { background: rgba(255,107,107,0.15); color: var(--accent2); }
+
+  /* AI section */
+  .ai-input-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px;
+    margin-bottom: 48px;
+  }
+
+  .ai-input-section h3 {
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .ai-input-section p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .prompt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .prompt-btn {
+    background: rgba(108,99,255,0.08);
+    border: 1px solid rgba(108,99,255,0.2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    padding: 10px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s, border-color 0.2s;
+    line-height: 1.4;
+  }
+
+  .prompt-btn:hover {
+    background: rgba(108,99,255,0.18);
+    border-color: var(--accent);
+  }
+
+  .custom-input-wrap {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .custom-input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 14px;
+    padding: 12px 16px;
+    border-radius: 3px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .custom-input:focus { border-color: var(--accent); }
+  .custom-input::placeholder { color: var(--muted); }
+
+  .send-btn {
+    background: var(--accent);
+    border: none;
+    color: white;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px 22px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  .send-btn:hover { background: #7c74ff; transform: translateY(-1px); }
+  .send-btn:active { transform: translateY(0); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="badge">⬡ System Design Mastery Kit</div>
+    <h1>Crack Any<br><span>System Design</span><br>Interview</h1>
+    <p class="subtitle">Your complete guide — frameworks, estimations, patterns, and a built-in AI coach to practice with.</p>
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-num">8</span>
+        <span class="stat-label">Step Framework</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">20+</span>
+        <span class="stat-label">Topics Covered</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">45</span>
+        <span class="stat-label">Min Interview</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">∞</span>
+        <span class="stat-label">AI Practice</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Framework -->
+  <div class="section-title">The RESHADE Framework</div>
+
+  <div class="framework-grid">
+    <div class="step-card">
+      <div class="step-num">STEP 01</div>
+      <div class="step-title">Requirements Clarification</div>
+      <div class="step-desc">Never jump to design. Ask smart questions to narrow scope.</div>
+      <ul class="step-items">
+        <li>Functional requirements (core features)</li>
+        <li>Non-functional (scale, latency, availability)</li>
+        <li>Constraints (budget, tech stack)</li>
+        <li>Users & usage patterns</li>
+      </ul>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">STEP 02</div>
+      <div class="step-title">Estimation of Scale</div>
+      <div class="step-desc">Back-of-envelope math to justify design decisions.</div>
+      <ul class="step-items">
+        <li>DAU / MAU / QPS</li>
+        <li>Storage (5 yrs projection)</li>
+        <li>Bandwidth (read vs write ratio)</li>
+        <li>Memory / cache requirements</li>
+      </ul>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">STEP 03</div>
+      <div class="step-title">System Interface (API Design)</div>
+      <div class="step-desc">Define clear APIs before drawing boxes.</div>
+      <ul class="step-items">
+        <li>REST / GraphQL / gRPC choices</li>
+        <li>Key endpoints with params</li>
+        <li>Rate limiting strategy</li>
+        <li>Auth & versioning</li>
+      </ul>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">STEP 04</div>
+      <div class="step-title">High-Level Design</div>
+      <div class="step-desc">Sketch the big picture — clients, servers, DB, caches.</div>
+      <ul class="step-items">
+        <li>Core components diagram</li>
+        <li>Client ↔ Server ↔ DB flow</li>
+        <li>Data flow walkthrough</li>
+        <li>Monolith vs Microservices</li>
+      </ul>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">STEP 05</div>
+      <div class="step-title">Data Model & Storage</div>
+      <div class="step-desc">Choose storage thoughtfully based on access patterns.</div>
+      <ul class="step-items">
+        <li>SQL vs NoSQL decision</li>
+        <li>Schema / data model design</li>
+        <li>Indexing strategy</li>
+        <li>Sharding & replication</li>
+      </ul>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">STEP 06</div>
+      <div class="step-title">Algorithm & Core Logic</div>
+      <div class="step-desc">Dig into the tricky parts — the "how" of key features.</div>
+      <ul class="step-items">
+        <li>Feed ranking / recommendation</li>
+        <li>Search / typeahead logic</li>
+        <li>Unique ID generation</li>
+        <li>Consistent hashing</li>
+      </ul>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">STEP 07</div>
+      <div class="step-title">Deep Dive & Bottlenecks</div>
+      <div class="step-desc">Identify weak points and solve for scale.</div>
+      <ul class="step-items">
+        <li>Single points of failure</li>
+        <li>Hot spots / hot keys</li>
+        <li>Latency bottlenecks</li>
+        <li>Thundering herd problem</li>
+      </ul>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">STEP 08</div>
+      <div class="step-title">Evolution & Trade-offs</div>
+      <div class="step-desc">Show maturity by discussing what you'd change at 10x scale.</div>
+      <ul class="step-items">
+        <li>CAP theorem trade-offs</li>
+        <li>Cost vs performance</li>
+        <li>Observability / monitoring</li>
+        <li>Migration / rollout strategy</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Time Allocation -->
+  <div class="section-title">Time Allocation (45-min Interview)</div>
+
+  <div class="time-bar">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px;">How to spend your 45 minutes strategically</div>
+    <div class="time-segments">
+      <div class="seg seg-1">R</div>
+      <div class="seg seg-2">Est</div>
+      <div class="seg seg-3">HLD</div>
+      <div class="seg seg-4">Deep Dive</div>
+      <div class="seg seg-5">Scale</div>
+      <div class="seg seg-6">Q</div>
+    </div>
+    <div class="time-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Requirements — 3 min</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div>Estimation — 7 min</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent4)"></div>High-level Design — 10 min</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff9f43"></div>Deep Dive — 12 min</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div>Scale & Bottlenecks — 10 min</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#a29bfe"></div>Q&A — 3 min</div>
+    </div>
+  </div>
+
+  <!-- Core Topics -->
+  <div class="section-title">Core Topics to Master</div>
+
+  <div class="topics-grid">
+    <div class="topic-card">
+      <span class="topic-icon">🗄️</span>
+      <div class="topic-name">Databases</div>
+      <div class="topic-tags">
+        <span class="tag">SQL</span><span class="tag green">NoSQL</span>
+        <span class="tag yellow">Sharding</span><span class="tag">Replication</span>
+        <span class="tag red">ACID</span><span class="tag green">BASE</span>
+      </div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">⚡</span>
+      <div class="topic-name">Caching</div>
+      <div class="topic-tags">
+        <span class="tag green">Redis</span><span class="tag">Memcached</span>
+        <span class="tag yellow">Eviction</span><span class="tag red">Cache-aside</span>
+        <span class="tag">Write-through</span>
+      </div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">⚖️</span>
+      <div class="topic-name">Load Balancing</div>
+      <div class="topic-tags">
+        <span class="tag">Round Robin</span><span class="tag green">Least Conn</span>
+        <span class="tag yellow">L4 / L7</span><span class="tag">CDN</span>
+      </div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">📨</span>
+      <div class="topic-name">Message Queues</div>
+      <div class="topic-tags">
+        <span class="tag green">Kafka</span><span class="tag">RabbitMQ</span>
+        <span class="tag yellow">Pub/Sub</span><span class="tag red">SQS</span>
+      </div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">📡</span>
+      <div class="topic-name">Communication</div>
+      <div class="topic-tags">
+        <span class="tag">REST</span><span class="tag green">gRPC</span>
+        <span class="tag yellow">WebSockets</span><span class="tag">SSE</span>
+        <span class="tag red">Long Poll</span>
+      </div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🔐</span>
+      <div class="topic-name">Security & Auth</div>
+      <div class="topic-tags">
+        <span class="tag">OAuth 2.0</span><span class="tag green">JWT</span>
+        <span class="tag yellow">Rate Limit</span><span class="tag red">DDoS</span>
+      </div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🌐</span>
+      <div class="topic-name">CDN & Storage</div>
+      <div class="topic-tags">
+        <span class="tag">S3</span><span class="tag green">CloudFront</span>
+        <span class="tag yellow">Object Store</span><span class="tag">Blob</span>
+      </div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🔍</span>
+      <div class="topic-name">Search Systems</div>
+      <div class="topic-tags">
+        <span class="tag green">Elasticsearch</span><span class="tag">Inverted Index</span>
+        <span class="tag yellow">Typeahead</span><span class="tag red">Fuzzy</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estimation Cheat Sheet -->
+  <div class="section-title">Estimation Cheat Sheet</div>
+
+  <div class="cheat-sheet">
+    <div class="cheat-title">Powers of 10 & Back-of-Envelope Numbers</div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1 KB</td><td>10³ bytes</td><td>Small JSON, short text</td></tr>
+          <tr><td>1 MB</td><td>10⁶ bytes</td><td>JPEG image, short video clip</td></tr>
+          <tr><td>1 GB</td><td>10⁹ bytes</td><td>~250 songs, HD movie</td></tr>
+          <tr><td>1 TB</td><td>10¹² bytes</td><td>Large DB, video library</td></tr>
+          <tr><td>1 day in seconds</td><td>~86,400 ≈ 10⁵</td><td>Round to 100K</td></tr>
+          <tr><td>Avg read latency (SSD)</td><td>~0.1ms</td><td>100x faster than HDD</td></tr>
+          <tr><td>Network round-trip (same DC)</td><td>~0.5ms</td><td>Cross-continent ~150ms</td></tr>
+          <tr><td>1M users × 10 req/day</td><td>~115 QPS</td><td>Peak = 3-5x avg</td></tr>
+          <tr><td>Tweet storage</td><td>~280 bytes</td><td>+metadata ≈ 500B</td></tr>
+          <tr><td>MySQL row write</td><td>~10K/sec</td><td>With index overhead</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Common Problems -->
+  <div class="section-title">Top Interview Problems</div>
+
+  <div class="problems-list">
+    <div class="problem-item">
+      <div class="problem-name">Design URL Shortener (TinyURL)</div>
+      <div class="problem-meta"><span class="diff-badge easy">Easy</span></div>
+    </div>
+    <div class="problem-item">
+      <div class="problem-name">Design a Rate Limiter</div>
+      <div class="problem-meta"><span class="diff-badge easy">Easy</span></div>
+    </div>
+    <div class="problem-item">
+      <div class="problem-name">Design Twitter / News Feed</div>
+      <div class="problem-meta"><span class="diff-badge medium">Medium</span></div>
+    </div>
+    <div class="problem-item">
+      <div class="problem-name">Design WhatsApp / Chat System</div>
+      <div class="problem-meta"><span class="diff-badge medium">Medium</span></div>
+    </div>
+    <div class="problem-item">
+      <div class="problem-name">Design YouTube / Video Streaming</div>
+      <div class="problem-meta"><span class="diff-badge medium">Medium</span></div>
+    </div>
+    <div class="problem-item">
+      <div class="problem-name">Design Uber / Ride Sharing</div>
+      <div class="problem-meta"><span class="diff-badge medium">Medium</span></div>
+    </div>
+    <div class="problem-item">
+      <div class="problem-name">Design Google Search</div>
+      <div class="problem-meta"><span class="diff-badge hard">Hard</span></div>
+    </div>
+    <div class="problem-item">
+      <div class="problem-name">Design a Distributed Cache (Redis)</div>
+      <div class="problem-meta"><span class="diff-badge hard">Hard</span></div>
+    </div>
+    <div class="problem-item">
+      <div class="problem-name">Design a Web Crawler</div>
+      <div class="problem-meta"><span class="diff-badge hard">Hard</span></div>
+    </div>
+    <div class="problem-item">
+      <div class="problem-name">Design Ticketmaster / Seat Booking</div>
+      <div class="problem-meta"><span class="diff-badge hard">Hard</span></div>
+    </div>
+  </div>
+
+  <!-- Dos and Don'ts -->
+  <div class="section-title">Do's & Don'ts</div>
+
+  <div class="dos-donts">
+    <div class="do-card">
+      <div class="card-header">✓ DO</div>
+      <ul class="check-list">
+        <li>Always clarify requirements before drawing anything</li>
+        <li>Think out loud — interviewers want your reasoning</li>
+        <li>Start broad, then drill down on specific components</li>
+        <li>Explicitly state trade-offs for every decision</li>
+        <li>Use numbers to back up your choices</li>
+        <li>Ask "would you like me to go deeper here?"</li>
+        <li>Mention failure modes and how you'd handle them</li>
+        <li>Discuss observability — metrics, logs, alerts</li>
+      </ul>
+    </div>
+    <div class="dont-card">
+      <div class="card-header">✗ DON'T</div>
+      <ul class="check-list">
+        <li>Jump straight into the solution without scoping</li>
+        <li>Over-engineer for Day 1 (design for 10x, not 1000x)</li>
+        <li>Use buzzwords without explaining them</li>
+        <li>Ignore the non-functional requirements</li>
+        <li>Spend too long on one component — keep moving</li>
+        <li>Forget about security, auth, and edge cases</li>
+        <li>Be silent — narrate every thought</li>
+        <li>Say "it depends" without saying what it depends on</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- AI Coach section -->
+  <div class="section-title">AI Interview Coach</div>
+
+  <div class="ai-input-section">
+    <h3>Ask Your System Design Question</h3>
+    <p>Use the quick prompts below or type your own question. Your AI guide will walk you through the full solution, trade-offs, and key concepts in detail.</p>
+
+    <div class="prompt-grid">
+      <button class="prompt-btn" onclick="sendPrompt('Walk me through how to design a URL shortener like TinyURL step by step')">🔗 Design URL Shortener</button>
+      <button class="prompt-btn" onclick="sendPrompt('Explain how to design WhatsApp — focus on real-time messaging and storage')">💬 Design Chat System</button>
+      <button class="prompt-btn" onclick="sendPrompt('How do I design Twitter\'s news feed with fan-out-on-write vs fan-out-on-read?')">🐦 Design Twitter Feed</button>
+      <button class="prompt-btn" onclick="sendPrompt('Explain consistent hashing with a real system design example')">🔄 Consistent Hashing</button>
+      <button class="prompt-btn" onclick="sendPrompt('How does a distributed rate limiter work? Explain token bucket and sliding window algorithms')">🚦 Rate Limiter Deep Dive</button>
+      <button class="prompt-btn" onclick="sendPrompt('When should I use SQL vs NoSQL in system design? Give me a clear decision framework')">🗄️ SQL vs NoSQL</button>
+      <button class="prompt-btn" onclick="sendPrompt('Explain database sharding strategies — horizontal vs vertical, range-based vs hash-based')">📊 DB Sharding</button>
+      <button class="prompt-btn" onclick="sendPrompt('How do I estimate scale for a system design interview? Walk me through the calculation process')">🧮 Scale Estimation</button>
+    </div>
+
+    <div class="custom-input-wrap">
+      <input class="custom-input" id="customQ" type="text" placeholder="Ask anything — e.g. 'How does Kafka ensure exactly-once delivery?'" onkeydown="if(event.key==='Enter') handleSend()" />
+      <button class="send-btn" onclick="handleSend()">Ask Guide →</button>
+    </div>
+  </div>
+
+  <footer>
+    System Design Mastery Kit — Built for engineers targeting FAANG & top-tier interviews
+  </footer>
+
+</div>
+
+<script>
+  function sendPrompt(text) {
+    if (window.sendPrompt) {
+      window.sendPrompt(text);
+    } else {
+      // Copy to clipboard as fallback
+      const input = document.getElementById('customQ');
+      input.value = text;
+      input.focus();
+    }
+  }
+
+  function handleSend() {
+    const input = document.getElementById('customQ');
+    const text = input.value.trim();
+    if (!text) return;
+    if (window.sendPrompt) {
+      window.sendPrompt(text);
+      input.value = '';
+    }
+  }
+</script>
+
+</body>
+</html>
