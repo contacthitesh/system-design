@@ -334,7 +334,7 @@ const tips = {
   availability: "Remember: each additional '9' is 10× harder to achieve. Going from 99.9% to 99.99% requires fundamentally different architecture (no single points of failure, multi-region, etc.).",
   time: "The golden shortcut: divide req/day by 100,000 to get approximate QPS. 1M req/day ≈ 12 QPS. Fast, accurate enough, and impressive to interviewers.",
   network: "When calculating bandwidth: QPS × avg_payload_size = bytes/sec. Then multiply by 8 for bits/sec. Always check if your estimated bandwidth fits within NIC capacity (~1–10 Gbps).",
-  formulas: "State assumptions before calculating. Say: 'I'll assume 10M DAU, each making 5 requests per day, so that's 500M requests/day...' This shows structured thinking.",
+  formulas: "State assumptions before calculating. Say: 'I'll assume 10M DAU, each making 50 requests per day, so that's 500M requests/day...' This shows structured thinking.",
   tricks: "Interviewers don't want exact numbers — they want to see that you know which numbers matter, can reason through trade-offs, and can communicate clearly under pressure.",
 };
 
