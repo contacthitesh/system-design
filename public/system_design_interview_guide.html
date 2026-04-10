@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Design Interview Guide — Senior Engineer</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --card: #fdfcfa;
+  --border: #e8e2d9;
+  --border2: #d4ccc0;
+  --ink: #1a1714;
+  --ink2: #4a443c;
+  --ink3: #8c8278;
+  --product: #c94a2a;
+  --infra: #1a6b4a;
+  --data: #1a4a8c;
+  --api: #7c2a8c;
+  --product-bg: #fdf0ec;
+  --infra-bg: #ecf7f2;
+  --data-bg: #ecf0fd;
+  --api-bg: #f7ecfd;
+  --product-border: #f0c4b8;
+  --infra-border: #b8e4d0;
+  --data-border: #b8c8f0;
+  --api-border: #deb8f0;
+  --warn-bg: #fffaec;
+  --warn: #9c6e00;
+  --success-bg: #ecfdf4;
+  --success: #1a6b3a;
+  --serif: 'Fraunces', Georgia, serif;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* NAV */
+nav {
+  position: sticky; top:0; z-index:100;
+  background: rgba(247,245,240,0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+}
+.nav-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; gap: 0;
+  overflow-x: auto;
+}
+.nav-logo {
+  font-family: var(--serif); font-weight: 700; font-size: 14px;
+  color: var(--ink); padding: 14px 24px 14px 0;
+  border-right: 1px solid var(--border); margin-right: 4px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.nav-tab {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+  padding: 14px 18px; cursor: pointer; color: var(--ink3);
+  border-bottom: 2px solid transparent; transition: all 0.15s;
+  white-space: nowrap; background: none; border-top: none;
+  border-left: none; border-right: none; text-transform: uppercase;
+}
+.nav-tab:hover { color: var(--ink); }
+.nav-tab.active-product { color: var(--product); border-bottom-color: var(--product); }
+.nav-tab.active-infra { color: var(--infra); border-bottom-color: var(--infra); }
+.nav-tab.active-data { color: var(--data); border-bottom-color: var(--data); }
+.nav-tab.active-api { color: var(--api); border-bottom-color: var(--api); }
+
+/* LAYOUT */
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+
+/* HERO */
+.hero {
+  padding: 64px 0 48px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+.hero-eyebrow {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--ink3); margin-bottom: 16px;
+}
+.hero h1 {
+  font-family: var(--serif); font-size: clamp(32px,5vw,60px);
+  font-weight: 900; line-height: 1.0; letter-spacing: -0.02em;
+  color: var(--ink); margin-bottom: 16px;
+}
+.hero h1 em { font-style: italic; }
+.hero-sub {
+  font-size: 16px; color: var(--ink2); max-width: 560px; line-height: 1.7;
+  margin-bottom: 28px;
+}
+.type-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill {
+  font-family: var(--mono); font-size: 11px; padding: 5px 14px;
+  border-radius: 99px; letter-spacing: 0.05em; border: 1px solid;
+}
+.pill-product { background: var(--product-bg); color: var(--product); border-color: var(--product-border); }
+.pill-infra { background: var(--infra-bg); color: var(--infra); border-color: var(--infra-border); }
+.pill-data { background: var(--data-bg); color: var(--data); border-color: var(--data-border); }
+.pill-api { background: var(--api-bg); color: var(--api); border-color: var(--api-border); }
+
+/* TYPE SECTION */
+.type-section {
+  padding: 64px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.type-header {
+  display: grid; grid-template-columns: auto 1fr; gap: 20px;
+  align-items: start; margin-bottom: 40px;
+}
+.type-num {
+  font-family: var(--serif); font-size: 72px; font-weight: 900;
+  line-height: 0.85; letter-spacing: -0.04em; opacity: 0.12;
+}
+.type-num.c-product { color: var(--product); }
+.type-num.c-infra   { color: var(--infra); }
+.type-num.c-data    { color: var(--data); }
+.type-num.c-api     { color: var(--api); }
+
+.type-meta {}
+.type-kind {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.type-kind.c-product { color: var(--product); }
+.type-kind.c-infra   { color: var(--infra); }
+.type-kind.c-data    { color: var(--data); }
+.type-kind.c-api     { color: var(--api); }
+
+.type-q {
+  font-family: var(--serif); font-size: clamp(22px,3vw,32px);
+  font-weight: 700; line-height: 1.15; letter-spacing: -0.02em;
+  color: var(--ink); margin-bottom: 10px;
+}
+.type-desc { font-size: 14px; color: var(--ink2); max-width: 580px; }
+
+/* CONTENT GRID */
+.content-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin-bottom: 16px;
+}
+.content-grid-3 {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px; margin-bottom: 16px;
+}
+@media(max-width:700px) {
+  .content-grid, .content-grid-3 { grid-template-columns: 1fr; }
+}
+
+/* CARDS */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 20px 22px; position: relative;
+}
+.card-full { grid-column: 1 / -1; }
+.card-accent-product { border-top: 3px solid var(--product); }
+.card-accent-infra   { border-top: 3px solid var(--infra); }
+.card-accent-data    { border-top: 3px solid var(--data); }
+.card-accent-api     { border-top: 3px solid var(--api); }
+
+.card-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--ink3); margin-bottom: 12px;
+}
+
+/* TIMELINE — 45 min script */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.tl-item { display: flex; gap: 14px; padding: 12px 0; position: relative; }
+.tl-item:not(:last-child)::after {
+  content:''; position:absolute; left:20px; top:42px; bottom:0;
+  width:1px; background: var(--border);
+}
+.tl-dot {
+  width: 40px; height: 40px; border-radius: 4px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+}
+.tl-body { flex: 1; padding-top: 8px; }
+.tl-time { font-family: var(--mono); font-size: 10px; color: var(--ink3); letter-spacing:0.08em; margin-bottom: 3px; }
+.tl-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+.tl-say { font-size: 12px; color: var(--ink2); line-height: 1.6; font-style: italic; background: var(--bg); border-left: 2px solid var(--border2); padding: 6px 10px; border-radius: 0 3px 3px 0; margin-top: 6px; }
+
+/* COMPONENTS CHECKLIST */
+.comp-list { display: flex; flex-direction: column; gap: 8px; }
+.comp-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 12px; border-radius: 4px; background: var(--bg);
+  border: 1px solid var(--border);
+}
+.comp-icon {
+  width: 22px; height: 22px; border-radius: 3px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; margin-top: 1px;
+}
+.comp-body { flex: 1; min-width: 0; }
+.comp-name { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+.comp-why { font-size: 11px; color: var(--ink3); line-height: 1.5; }
+.comp-must { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--product); background: var(--product-bg); padding: 2px 6px; border-radius: 2px; margin-left: 6px; }
+.comp-nice { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--infra); background: var(--infra-bg); padding: 2px 6px; border-radius: 2px; margin-left: 6px; }
+
+/* TRADEOFF TABLE */
+.tradeoff-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tradeoff-table th {
+  text-align: left; padding: 8px 12px; font-family: var(--mono);
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink3); border-bottom: 1px solid var(--border);
+  font-weight: 400;
+}
+.tradeoff-table td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  vertical-align: top; color: var(--ink2);
+}
+.tradeoff-table tr:last-child td { border-bottom: none; }
+.tradeoff-table td:first-child { font-weight: 500; color: var(--ink); white-space: nowrap; }
+.tradeoff-table .pro { color: var(--success); font-size: 11px; }
+.tradeoff-table .con { color: #b04040; font-size: 11px; }
+.tradeoff-table .use { color: var(--ink2); font-size: 11px; }
+.tradeoff-table .pick { background: var(--warn-bg); }
+
+/* DIAGRAM */
+.diagram-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden; margin-bottom: 16px;
+}
+.diagram-label {
+  padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink3);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.diagram-label span { color: var(--ink3); font-size:10px; }
+
+/* MUST KNOW BOX */
+.must-know {
+  background: var(--warn-bg); border: 1px solid #e8d090;
+  border-radius: 6px; padding: 16px 20px; margin-bottom: 16px;
+}
+.must-know-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--warn); margin-bottom: 10px;
+}
+.must-know ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.must-know li { font-size: 13px; color: var(--ink2); padding-left: 16px; position: relative; }
+.must-know li::before { content: '→'; position:absolute; left:0; color: var(--warn); font-size:11px; top:2px; }
+
+/* SENIOR SIGNAL */
+.senior-signal {
+  background: var(--success-bg); border: 1px solid #a8e0be;
+  border-radius: 6px; padding: 16px 20px; margin-top: 16px;
+}
+.senior-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--success); margin-bottom: 10px;
+}
+.senior-signal ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.senior-signal li { font-size: 13px; color: var(--ink2); padding-left: 16px; position: relative; }
+.senior-signal li::before { content: '✓'; position:absolute; left:0; color: var(--success); font-size:11px; top:2px; }
+
+/* QUOTE */
+.interviewer-q {
+  font-family: var(--serif); font-size: 15px; font-style: italic;
+  color: var(--ink); background: var(--bg); border: 1px solid var(--border2);
+  border-radius: 4px; padding: 14px 18px; margin-bottom: 12px;
+  position: relative; padding-left: 32px;
+}
+.interviewer-q::before {
+  content: '"'; position: absolute; left: 12px; top: 8px;
+  font-size: 28px; color: var(--border2); font-family: var(--serif); line-height: 1;
+}
+
+/* SECTION DIVIDER */
+.sec-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 24px 0 16px; font-family: var(--mono);
+  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink3);
+}
+.sec-divider::before, .sec-divider::after { content:''; flex:1; height:1px; background: var(--border); }
+
+/* SCROLL TO TOP */
+.back-top {
+  position: fixed; bottom: 28px; right: 28px;
+  background: var(--ink); color: #fff; border: none;
+  width: 40px; height: 40px; border-radius: 4px; cursor: pointer;
+  font-size: 16px; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s; pointer-events: none;
+}
+.back-top.visible { opacity: 1; pointer-events: auto; }
+
+/* FOOTER */
+footer {
+  padding: 40px 0; border-top: 1px solid var(--border);
+  text-align: center; font-family: var(--mono); font-size: 11px; color: var(--ink3);
+  margin-top: 32px;
+}
+
+/* ANIM */
+@keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.fade-in { animation: fadeIn 0.4s ease both; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">SD Interview Guide</div>
+    <button class="nav-tab active-product" onclick="scrollTo('product')">01 Product</button>
+    <button class="nav-tab active-infra" onclick="scrollTo('infra')">02 Infrastructure</button>
+    <button class="nav-tab active-data" onclick="scrollTo('data')">03 Data Systems</button>
+    <button class="nav-tab active-api" onclick="scrollTo('api')">04 API Design</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- HERO -->
+<section class="hero fade-in">
+  <div class="hero-eyebrow">Senior Engineer · 45-min Interview Playbook</div>
+  <h1>Master Every Type of<br><em>System Design</em> Interview</h1>
+  <p class="hero-sub">4 real interview problems — one per design type — with diagrams, component checklists, trade-off tables, and a minute-by-minute script. Built for Senior Engineer level (5–8 yrs).</p>
+  <div class="type-pills">
+    <span class="pill pill-product">Product Design</span>
+    <span class="pill pill-infra">Infrastructure</span>
+    <span class="pill pill-data">Data Systems</span>
+    <span class="pill pill-api">API Design</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 01 PRODUCT DESIGN — TWITTER NEWS FEED              -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="type-section" id="product">
+  <div class="type-header">
+    <div class="type-num c-product">01</div>
+    <div class="type-meta">
+      <div class="type-kind c-product">Product Design</div>
+      <div class="type-q">"Design Twitter's News Feed"</div>
+      <div class="type-desc">The most common product design question. Tests your understanding of fan-out, caching, ranking, and the read/write asymmetry at social scale.</div>
+    </div>
+  </div>
+
+  <!-- 45 MIN SCRIPT -->
+  <div class="card card-full card-accent-product" style="margin-bottom:16px;">
+    <div class="card-label">45-Minute Interview Script</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--product-bg);color:var(--product);">0–3</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 0–3 · REQUIREMENTS</div>
+          <div class="tl-title">Clarify scope before drawing anything</div>
+          <div class="tl-say">"Before I start, let me clarify scope. Are we designing just the feed, or also tweet creation and following? Should I handle media — images and video? How many users — Twitter scale, around 300M DAU? Should the feed be real-time or near-real-time, say within a few seconds? I'll assume a Twitter-like product: 300M DAU, home timeline showing tweets from followed users, roughly 50 reads per user per day and 1 write per day."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--product-bg);color:var(--product);">3–8</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 3–8 · ESTIMATION</div>
+          <div class="tl-title">Back-of-envelope to justify your design</div>
+          <div class="tl-say">"300M DAU × 50 reads ÷ 86,400 = ~174K read QPS average, peak around 500K. Writes: 300M × 1 tweet ÷ 86,400 = ~3,500 write QPS. Read to write ratio is 50:1 — this is extremely read-heavy, which means we should aggressively cache feeds. Tweet storage: 300M tweets/day × 300 bytes = ~90 GB/day of text, manageable."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--product-bg);color:var(--product);">8–18</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 8–18 · HIGH-LEVEL DESIGN</div>
+          <div class="tl-title">Draw the core architecture</div>
+          <div class="tl-say">"Let me draw the high level. A user posts a tweet → hits the Write API → stored in Tweet DB (Cassandra, partition by user_id) → a Fan-out Service reads the author's follower list and pushes the tweet ID into each follower's pre-computed feed cache in Redis. On read, the Feed Service pulls from that Redis cache — instant response. This is fan-out on write."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--product-bg);color:var(--product);">18–30</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 18–30 · DEEP DIVE — THE HARD PART</div>
+          <div class="tl-title">Celebrity problem + hybrid fan-out</div>
+          <div class="tl-say">"The critical problem with pure fan-out on write: a celebrity with 50M followers posting one tweet would trigger 50M write operations synchronously — that's a thundering herd. My solution is a hybrid approach: for normal users, fan-out on write. For celebrities — defined as users with more than, say, 1M followers — we use fan-out on read. When a user loads their feed, we pull celebrity tweets separately and merge them with the pre-built feed. This keeps write costs manageable while reads stay fast."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--product-bg);color:var(--product);">30–40</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 30–40 · SCALE & BOTTLENECKS</div>
+          <div class="tl-title">Identify and solve weak points</div>
+          <div class="tl-say">"Three bottlenecks I want to address. First, the Redis feed cache — each user's feed stores ~200 tweet IDs, that's 200 × 8 bytes × 300M users = ~480 GB of cache. Totally feasible with a Redis cluster. Second, Cassandra for tweets — I'd shard by (user_id, tweet_id) to keep a user's tweets co-located. Third, the media — images go to S3, served through CloudFront CDN, not our origin servers."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--product-bg);color:var(--product);">40–45</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 40–45 · TRADE-OFFS & WRAP UP</div>
+          <div class="tl-title">Show maturity with honest trade-offs</div>
+          <div class="tl-say">"The hybrid fan-out adds complexity — we need to track who is a celebrity and update that threshold. Pre-computed feeds mean eventual consistency — a user might see tweets up to 2 seconds late, which is acceptable for a social network but wouldn't work for, say, a trading system. If I were building this, I'd also add a ML ranking layer between the feed cache and the response, to rank by engagement rather than pure chronological order."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAGRAM -->
+  <div class="diagram-wrap">
+    <div class="diagram-label">Architecture Diagram — Twitter News Feed <span>Fan-out on Write + Hybrid Celebrity Handling</span></div>
+    <svg width="100%" viewBox="0 0 680 420" style="display:block;">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#b4a898" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#c94a2a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Client -->
+      <rect x="20" y="180" width="80" height="40" rx="4" fill="#fdf0ec" stroke="#f0c4b8" stroke-width="1"/>
+      <text x="60" y="196" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c94a2a" font-weight="500">Client</text>
+      <text x="60" y="210" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Mobile/Web</text>
+
+      <!-- API Gateway -->
+      <rect x="130" y="165" width="90" height="70" rx="4" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="175" y="185" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">API</text>
+      <text x="175" y="198" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">Gateway</text>
+      <text x="175" y="213" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Rate limit</text>
+      <text x="175" y="225" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Auth</text>
+
+      <!-- Write Service -->
+      <rect x="260" y="80" width="100" height="50" rx="4" fill="#fdf0ec" stroke="#f0c4b8" stroke-width="1"/>
+      <text x="310" y="98" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c94a2a" font-weight="500">Write</text>
+      <text x="310" y="111" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c94a2a" font-weight="500">Service</text>
+      <text x="310" y="122" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Post tweet</text>
+
+      <!-- Read / Feed Service -->
+      <rect x="260" y="260" width="100" height="50" rx="4" fill="#fdf0ec" stroke="#f0c4b8" stroke-width="1"/>
+      <text x="310" y="278" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c94a2a" font-weight="500">Feed</text>
+      <text x="310" y="291" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c94a2a" font-weight="500">Service</text>
+      <text x="310" y="302" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Read timeline</text>
+
+      <!-- Fan-out Service -->
+      <rect x="400" y="80" width="100" height="50" rx="4" fill="#ecf7f2" stroke="#b8e4d0" stroke-width="1"/>
+      <text x="450" y="98" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a6b4a" font-weight="500">Fan-out</text>
+      <text x="450" y="111" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a6b4a" font-weight="500">Service</text>
+      <text x="450" y="122" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Push to feeds</text>
+
+      <!-- Tweet DB (Cassandra) -->
+      <rect x="400" y="160" width="100" height="50" rx="4" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="450" y="178" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">Cassandra</text>
+      <text x="450" y="191" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">Tweet DB</text>
+      <text x="450" y="202" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Shard by user_id</text>
+
+      <!-- Redis Feed Cache -->
+      <rect x="400" y="240" width="100" height="50" rx="4" fill="#ecf0fd" stroke="#b8c8f0" stroke-width="1"/>
+      <text x="450" y="258" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a4a8c" font-weight="500">Redis</text>
+      <text x="450" y="271" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a4a8c" font-weight="500">Feed Cache</text>
+      <text x="450" y="282" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">200 tweet IDs/user</text>
+
+      <!-- Graph DB / User Service -->
+      <rect x="540" y="80" width="110" height="50" rx="4" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="595" y="98" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">User Graph</text>
+      <text x="595" y="111" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">DB</text>
+      <text x="595" y="122" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Follower lists</text>
+
+      <!-- CDN/Media -->
+      <rect x="540" y="240" width="110" height="50" rx="4" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="595" y="258" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">S3 + CDN</text>
+      <text x="595" y="275" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Media storage</text>
+      <text x="595" y="287" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">CloudFront</text>
+
+      <!-- Celebrity label -->
+      <rect x="540" y="160" width="110" height="50" rx="4" fill="#fdf0ec" stroke="#f0c4b8" stroke-width="1" stroke-dasharray="4 2"/>
+      <text x="595" y="178" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c94a2a" font-weight="500">Celebrity</text>
+      <text x="595" y="191" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c94a2a" font-weight="500">Handler</text>
+      <text x="595" y="202" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Fan-out on read</text>
+
+      <!-- ARROWS -->
+      <line x1="100" y1="200" x2="128" y2="200" stroke="#b4a898" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="220" y1="190" x2="258" y2="140" stroke="#b4a898" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="220" y1="210" x2="258" y2="275" stroke="#b4a898" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="360" y1="105" x2="398" y2="105" stroke="#b4a898" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="360" y1="115" x2="398" y2="175" stroke="#b4a898" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="500" y1="105" x2="538" y2="105" stroke="#b4a898" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="500" y1="115" x2="538" y2="170" stroke="#c94a2a" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr-red)"/>
+      <line x1="450" y1="210" x2="450" y2="238" stroke="#b4a898" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="400" y1="265" x2="362" y2="278" stroke="#b4a898" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="538" y1="185" x2="502" y2="270" stroke="#c94a2a" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr-red)"/>
+      <line x1="360" y1="280" x2="538" y2="268" stroke="#b4a898" stroke-width="1" marker-end="url(#arr)"/>
+
+      <!-- Legend -->
+      <line x1="24" y1="390" x2="50" y2="390" stroke="#b4a898" stroke-width="1" marker-end="url(#arr)"/>
+      <text x="56" y="394" font-family="DM Sans,sans-serif" font-size="10" fill="#8c8278">Normal flow</text>
+      <line x1="130" y1="390" x2="156" y2="390" stroke="#c94a2a" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr-red)"/>
+      <text x="162" y="394" font-family="DM Sans,sans-serif" font-size="10" fill="#8c8278">Celebrity path (fan-out on read)</text>
+    </svg>
+  </div>
+
+  <div class="content-grid">
+    <!-- MUST DISCUSS -->
+    <div class="card">
+      <div class="card-label">Must-Discuss Components</div>
+      <div class="comp-list">
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--product-bg);color:var(--product);">①</div>
+          <div class="comp-body"><div class="comp-name">Fan-out strategy <span class="comp-must">MUST</span></div><div class="comp-why">Fan-out on write vs read vs hybrid. This IS the core problem.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--product-bg);color:var(--product);">②</div>
+          <div class="comp-body"><div class="comp-name">Celebrity / hot user problem <span class="comp-must">MUST</span></div><div class="comp-why">50M follower user = 50M writes on one tweet. Interviewers always ask this.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--product-bg);color:var(--product);">③</div>
+          <div class="comp-body"><div class="comp-name">Redis feed cache <span class="comp-must">MUST</span></div><div class="comp-why">Pre-compute timelines. 200 tweet IDs × 300M users = ~480 GB RAM.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--product-bg);color:var(--product);">④</div>
+          <div class="comp-body"><div class="comp-name">Cassandra for tweets <span class="comp-must">MUST</span></div><div class="comp-why">Write-heavy, time-series, shards linearly. Partition by user_id.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:#f7f5f0;color:var(--ink3);">⑤</div>
+          <div class="comp-body"><div class="comp-name">Message queue (Kafka) <span class="comp-nice">GOOD</span></div><div class="comp-why">Async fan-out. Decouple tweet write from feed propagation.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:#f7f5f0;color:var(--ink3);">⑥</div>
+          <div class="comp-body"><div class="comp-name">ML ranking layer <span class="comp-nice">GOOD</span></div><div class="comp-why">Re-rank feed by engagement. Senior signal — goes beyond chronological.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRADE-OFFS -->
+    <div class="card">
+      <div class="card-label">Key Trade-off: Fan-out Strategy</div>
+      <table class="tradeoff-table">
+        <tr><th>Strategy</th><th>Pros</th><th>Cons</th></tr>
+        <tr>
+          <td>Fan-out on Write</td>
+          <td><span class="pro">✓ Reads are O(1) — instant</span><br><span class="pro">✓ Simple read path</span></td>
+          <td><span class="con">✗ Celebrity writes are slow</span><br><span class="con">✗ Wasted work for inactive users</span></td>
+        </tr>
+        <tr>
+          <td>Fan-out on Read</td>
+          <td><span class="pro">✓ Writes are instant</span><br><span class="pro">✓ No wasted storage</span></td>
+          <td><span class="con">✗ Reads are slow (merge N feeds)</span><br><span class="con">✗ Doesn't scale at read QPS</span></td>
+        </tr>
+        <tr class="pick">
+          <td>Hybrid ← Pick this</td>
+          <td><span class="pro">✓ Best of both worlds</span><br><span class="pro">✓ Handles celebrities cleanly</span></td>
+          <td><span class="con">✗ More complex logic</span><br><span class="con">✗ Need to define celebrity threshold</span></td>
+        </tr>
+      </table>
+      <div class="senior-signal" style="margin-top:12px;">
+        <div class="senior-label">Senior Signal — Say These Things</div>
+        <ul>
+          <li>Propose the hybrid approach unprompted</li>
+          <li>Mention eventual consistency trade-off explicitly</li>
+          <li>Discuss feed ranking beyond chronological order</li>
+          <li>Talk about cache eviction for inactive users</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 02 INFRASTRUCTURE — RATE LIMITER                   -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="type-section" id="infra">
+  <div class="type-header">
+    <div class="type-num c-infra">02</div>
+    <div class="type-meta">
+      <div class="type-kind c-infra">Infrastructure Design</div>
+      <div class="type-q">"Design a Distributed Rate Limiter"</div>
+      <div class="type-desc">Tests your depth in algorithms, distributed coordination, and the trade-off between accuracy, speed, and consistency. A senior favourite.</div>
+    </div>
+  </div>
+
+  <div class="card card-full card-accent-infra" style="margin-bottom:16px;">
+    <div class="card-label">45-Minute Interview Script</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--infra-bg);color:var(--infra);">0–3</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 0–3 · REQUIREMENTS</div>
+          <div class="tl-title">Nail down what you're rate-limiting</div>
+          <div class="tl-say">"A few things I want to clarify: Are we rate-limiting per user, per IP, or per API key? What's the scale — 10K requests/sec? Should it be hard or soft limiting — block vs throttle? What accuracy do we need? A few percent error okay? I'll design a per-user rate limiter at 10K RPS, distributed across multiple API servers, with soft blocking — return 429 when exceeded. 1–2% error tolerance is acceptable."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--infra-bg);color:var(--infra);">3–12</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 3–12 · ALGORITHM CHOICE</div>
+          <div class="tl-title">Walk through all 4 algorithms — then pick one</div>
+          <div class="tl-say">"There are four common algorithms. Token Bucket — tokens refill at fixed rate, requests consume a token, allows bursting. Leaky Bucket — requests drain at fixed rate, no bursting. Fixed Window Counter — count reqs per minute, reset at window edge. Problem: 2× burst at window boundary. Sliding Window Log — track exact timestamps, most accurate but memory-heavy. Sliding Window Counter — approximate sliding window using weighted sum of current and previous window counts. For our use case I'd pick Sliding Window Counter — it's ~2% off from the exact log but uses O(1) memory per user and handles distributed counters cleanly in Redis."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--infra-bg);color:var(--infra);">12–25</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 12–25 · DISTRIBUTED DESIGN</div>
+          <div class="tl-title">The hard part — multiple nodes, shared state</div>
+          <div class="tl-say">"The distributed challenge: we have 10 API servers. If each stores its own count, a user can hit server A 100 times and server B 100 times and bypass a limit of 100. We need centralized counters. I'd use Redis with a Lua script — INCR and GET in a single atomic operation to avoid race conditions. The Redis key is `rate:{user_id}:{window}` with TTL = window size. For even higher scale, we shard Redis by user_id using consistent hashing — each user always maps to one Redis node, no cross-node coordination needed."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--infra-bg);color:var(--infra);">25–38</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 25–38 · DEEP DIVE</div>
+          <div class="tl-title">Redis failure, headers, and where to place it</div>
+          <div class="tl-say">"Three things I want to address proactively. One — Redis failure: if Redis goes down, we fail open by default, meaning requests go through without rate limiting. For a financial API, fail closed instead. Two — response headers: always return X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset so clients can back off intelligently. Three — placement: the rate limiter should sit in the API Gateway or as a middleware layer, not in each service — avoids duplicating the logic and keeps it auditable."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--infra-bg);color:var(--infra);">38–45</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 38–45 · TRADE-OFFS</div>
+          <div class="tl-title">Accuracy vs performance vs complexity</div>
+          <div class="tl-say">"The fundamental trade-off: more accurate = more memory and coordination. Token Bucket gives bursting which some APIs need. Sliding Window Log is perfect accuracy but O(n) memory. My sliding window counter gives 99% accuracy at O(1) memory. The final thing I'd add: a rules engine — don't hardcode limits in code. Store limit configs in a config service so you can update them without deploys."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAGRAM -->
+  <div class="diagram-wrap">
+    <div class="diagram-label">Architecture Diagram — Distributed Rate Limiter <span>Redis Cluster + API Gateway Pattern</span></div>
+    <svg width="100%" viewBox="0 0 680 360" style="display:block;">
+      <defs>
+        <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#b4a898" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr2g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#1a6b4a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Clients -->
+      <rect x="20" y="60" width="70" height="36" rx="3" fill="#ecf7f2" stroke="#b8e4d0" stroke-width="1"/>
+      <text x="55" y="78" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a6b4a">Client A</text>
+      <text x="55" y="89" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">User 1</text>
+
+      <rect x="20" y="120" width="70" height="36" rx="3" fill="#ecf7f2" stroke="#b8e4d0" stroke-width="1"/>
+      <text x="55" y="138" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a6b4a">Client B</text>
+      <text x="55" y="149" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">User 2</text>
+
+      <rect x="20" y="180" width="70" height="36" rx="3" fill="#ecf7f2" stroke="#b8e4d0" stroke-width="1"/>
+      <text x="55" y="198" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a6b4a">Client C</text>
+      <text x="55" y="209" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">User N</text>
+
+      <!-- API Gateway + Rate Limiter -->
+      <rect x="120" y="80" width="120" height="120" rx="4" fill="#ecf7f2" stroke="#1a6b4a" stroke-width="1.5"/>
+      <text x="180" y="108" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#1a6b4a" font-weight="500">API Gateway</text>
+      <rect x="132" y="118" width="96" height="36" rx="3" fill="#fff" stroke="#b8e4d0" stroke-width="1"/>
+      <text x="180" y="133" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a6b4a" font-weight="500">Rate Limiter</text>
+      <text x="180" y="146" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Middleware</text>
+      <text x="180" y="168" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">429 if exceeded</text>
+      <text x="180" y="182" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Pass if within limit</text>
+
+      <!-- Redis Cluster -->
+      <rect x="280" y="60" width="130" height="170" rx="4" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="345" y="84" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">Redis Cluster</text>
+      <text x="345" y="97" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Sharded by user_id</text>
+
+      <rect x="292" y="106" width="106" height="34" rx="3" fill="#ecf0fd" stroke="#b8c8f0" stroke-width="1"/>
+      <text x="345" y="120" text-anchor="middle" font-family="DM Mono,monospace" font-size="9" fill="#1a4a8c">Node 1</text>
+      <text x="345" y="132" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">user_id 0–33%</text>
+
+      <rect x="292" y="148" width="106" height="34" rx="3" fill="#ecf0fd" stroke="#b8c8f0" stroke-width="1"/>
+      <text x="345" y="162" text-anchor="middle" font-family="DM Mono,monospace" font-size="9" fill="#1a4a8c">Node 2</text>
+      <text x="345" y="174" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">user_id 33–66%</text>
+
+      <rect x="292" y="190" width="106" height="34" rx="3" fill="#ecf0fd" stroke="#b8c8f0" stroke-width="1"/>
+      <text x="345" y="204" text-anchor="middle" font-family="DM Mono,monospace" font-size="9" fill="#1a4a8c">Node 3</text>
+      <text x="345" y="216" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">user_id 66–100%</text>
+
+      <!-- Rules/Config Service -->
+      <rect x="280" y="255" width="130" height="50" rx="4" fill="#f7ecfd" stroke="#deb8f0" stroke-width="1"/>
+      <text x="345" y="274" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7c2a8c" font-weight="500">Config Service</text>
+      <text x="345" y="287" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Rate limit rules</text>
+      <text x="345" y="298" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">No code deploys</text>
+
+      <!-- Backend Services -->
+      <rect x="450" y="80" width="100" height="44" rx="3" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="500" y="99" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c">Service A</text>
+      <text x="500" y="113" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Tweet API</text>
+
+      <rect x="450" y="145" width="100" height="44" rx="3" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="500" y="164" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c">Service B</text>
+      <text x="500" y="178" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Feed API</text>
+
+      <rect x="450" y="210" width="100" height="44" rx="3" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="500" y="229" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c">Service C</text>
+      <text x="500" y="243" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Search API</text>
+
+      <!-- Response headers callout -->
+      <rect x="570" y="130" width="100" height="68" rx="3" fill="#fffaec" stroke="#e8d090" stroke-width="1"/>
+      <text x="620" y="148" text-anchor="middle" font-family="DM Mono,monospace" font-size="9" fill="#9c6e00" font-weight="500">Headers</text>
+      <text x="620" y="162" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="#8c8278">X-Limit</text>
+      <text x="620" y="174" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="#8c8278">X-Remaining</text>
+      <text x="620" y="186" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="#8c8278">X-Reset</text>
+
+      <!-- ARROWS -->
+      <line x1="90" y1="78" x2="118" y2="120" stroke="#b4a898" stroke-width="1" marker-end="url(#arr2)"/>
+      <line x1="90" y1="138" x2="118" y2="148" stroke="#b4a898" stroke-width="1" marker-end="url(#arr2)"/>
+      <line x1="90" y1="198" x2="118" y2="170" stroke="#b4a898" stroke-width="1" marker-end="url(#arr2)"/>
+      <line x1="240" y1="136" x2="278" y2="136" stroke="#1a6b4a" stroke-width="1" marker-end="url(#arr2g)"/>
+      <line x1="240" y1="152" x2="278" y2="270" stroke="#7c2a8c" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr2)"/>
+      <line x1="410" y1="102" x2="448" y2="102" stroke="#b4a898" stroke-width="1" marker-end="url(#arr2)"/>
+      <line x1="410" y1="145" x2="448" y2="167" stroke="#b4a898" stroke-width="1" marker-end="url(#arr2)"/>
+      <line x1="410" y1="158" x2="448" y2="228" stroke="#b4a898" stroke-width="1" marker-end="url(#arr2)"/>
+      <line x1="550" y1="165" x2="568" y2="165" stroke="#9c6e00" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr2)"/>
+
+      <!-- Lua label -->
+      <text x="254" y="130" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="#1a6b4a">INCR</text>
+      <text x="254" y="142" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="#1a6b4a">Atomic</text>
+    </svg>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Must-Discuss Components</div>
+      <div class="comp-list">
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--infra-bg);color:var(--infra);">①</div>
+          <div class="comp-body"><div class="comp-name">All 4 algorithms + choice <span class="comp-must">MUST</span></div><div class="comp-why">Token bucket, leaky, fixed window, sliding window. Pick one and justify.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--infra-bg);color:var(--infra);">②</div>
+          <div class="comp-body"><div class="comp-name">Race condition + atomic ops <span class="comp-must">MUST</span></div><div class="comp-why">Redis Lua script for atomic INCR+GET. Multi-node race conditions.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--infra-bg);color:var(--infra);">③</div>
+          <div class="comp-body"><div class="comp-name">Redis failure handling <span class="comp-must">MUST</span></div><div class="comp-why">Fail open vs fail closed — depends on system criticality.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--infra-bg);color:var(--infra);">④</div>
+          <div class="comp-body"><div class="comp-name">Response headers <span class="comp-must">MUST</span></div><div class="comp-why">X-RateLimit-Limit/Remaining/Reset. Shows API empathy.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:#f7f5f0;color:var(--ink3);">⑤</div>
+          <div class="comp-body"><div class="comp-name">Config / rules service <span class="comp-nice">GOOD</span></div><div class="comp-why">Don't hardcode limits. Change rules without deploys.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Algorithm Trade-offs</div>
+      <table class="tradeoff-table">
+        <tr><th>Algorithm</th><th>Accuracy</th><th>Memory</th><th>Burst?</th></tr>
+        <tr><td>Fixed Window</td><td><span class="con">~50% off</span></td><td><span class="pro">O(1)</span></td><td>Yes — edge burst</td></tr>
+        <tr><td>Sliding Log</td><td><span class="pro">Exact</span></td><td><span class="con">O(n req)</span></td><td>No</td></tr>
+        <tr><td>Token Bucket</td><td><span class="pro">Exact</span></td><td><span class="pro">O(1)</span></td><td><span class="pro">Yes — by design</span></td></tr>
+        <tr class="pick"><td>Sliding Counter ←</td><td><span class="pro">~99%</span></td><td><span class="pro">O(1)</span></td><td>Smooth</td></tr>
+      </table>
+      <div class="senior-signal" style="margin-top:12px;">
+        <div class="senior-label">Senior Signal — Say These Things</div>
+        <ul>
+          <li>Mention the fixed-window boundary burst problem</li>
+          <li>Discuss fail-open vs fail-closed explicitly</li>
+          <li>Propose a rules/config service for dynamic limits</li>
+          <li>Mention per-user vs per-IP vs per-endpoint limits</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 03 DATA SYSTEMS — ANALYTICS PIPELINE               -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="type-section" id="data">
+  <div class="type-header">
+    <div class="type-num c-data">03</div>
+    <div class="type-meta">
+      <div class="type-kind c-data">Data System Design</div>
+      <div class="type-q">"Design YouTube's Analytics System"</div>
+      <div class="type-desc">Tests your understanding of stream vs batch processing, lambda/kappa architecture, OLAP vs OLTP, and data warehousing at scale.</div>
+    </div>
+  </div>
+
+  <div class="card card-full card-accent-data" style="margin-bottom:16px;">
+    <div class="card-label">45-Minute Interview Script</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--data-bg);color:var(--data);">0–3</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 0–3 · REQUIREMENTS</div>
+          <div class="tl-title">Clarify the analytics queries first</div>
+          <div class="tl-say">"Before designing, I need to understand the queries. What metrics are we tracking — views, watch time, likes, revenue? What's the latency requirement — real-time dashboard, or is hourly okay? Who consumes this — creators, advertisers, internal teams? I'll design for: view counts and watch time, creators see near-real-time data with ~1 minute lag, supports historical queries going back 5 years, 500K videos with 1B views/day."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--data-bg);color:var(--data);">3–10</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 3–10 · ARCHITECTURE CHOICE</div>
+          <div class="tl-title">Lambda architecture — stream + batch</div>
+          <div class="tl-say">"I'll use Lambda Architecture. There are two layers: the Speed Layer handles near-real-time analytics — events flow through Kafka → Flink for stream processing → results in Redis for dashboards. The Batch Layer handles historical queries — the same events land in S3 data lake → Spark jobs run hourly/daily → results go into a data warehouse like Redshift. The Serving Layer merges real-time Redis counts with historical warehouse data to answer any query. The alternative is Kappa Architecture — stream only, no batch. Simpler but harder to correct historical data."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--data-bg);color:var(--data);">10–25</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 10–25 · DEEP DIVE — DATA FLOW</div>
+          <div class="tl-title">Walk through a single view event end to end</div>
+          <div class="tl-say">"A user watches a video. The video player fires a view event — JSON payload with user_id, video_id, timestamp, watch_duration, country — to an Event Ingestion API. This writes to Kafka topic `video_events`. From Kafka, two consumers: Flink aggregates views per video in tumbling 1-minute windows and updates Redis counters. Simultaneously, a Kafka consumer writes raw events to S3 in Parquet format partitioned by date. Hourly Spark jobs aggregate S3 data and load into Redshift. The creator dashboard queries the Serving Layer — recent data from Redis, older data from Redshift."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--data-bg);color:var(--data);">25–38</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 25–38 · DATA MODELING & SCALE</div>
+          <div class="tl-title">Schema design and deduplication</div>
+          <div class="tl-say">"Two important problems. First, deduplication: a user refreshing sends duplicate view events. I'd use a Bloom filter or a Redis SET with a 24-hour TTL storing (user_id + video_id + date) — if the key exists, discard the event. Second, the Redshift schema: I'd use a star schema — fact table `video_views` with foreign keys to dimension tables: dim_video, dim_user, dim_date, dim_geography. This enables fast GROUP BY queries like 'views by country for video X over last 30 days' with columnar storage."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--data-bg);color:var(--data);">38–45</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 38–45 · TRADE-OFFS</div>
+          <div class="tl-title">Lambda complexity vs Kappa simplicity</div>
+          <div class="tl-say">"Lambda's downside is maintaining two codepaths — one in Flink, one in Spark — that must produce consistent results. Teams often spend months debugging discrepancies. Kappa uses only streaming — Kafka with long retention acts as the historical store, you replay from the start to recompute. Simpler to maintain, but reprocessing 5 years of YouTube data takes days. My choice: Lambda for this because YouTube's historical query patterns are complex and batch SQL is far easier than streaming SQL for ad-hoc analytics."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAGRAM -->
+  <div class="diagram-wrap">
+    <div class="diagram-label">Architecture Diagram — YouTube Analytics Pipeline <span>Lambda Architecture: Stream + Batch</span></div>
+    <svg width="100%" viewBox="0 0 680 400" style="display:block;">
+      <defs>
+        <marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#b4a898" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr3b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#1a4a8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Source -->
+      <rect x="14" y="170" width="80" height="44" rx="3" fill="#ecf0fd" stroke="#b8c8f0" stroke-width="1"/>
+      <text x="54" y="189" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a4a8c" font-weight="500">Video</text>
+      <text x="54" y="202" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a4a8c" font-weight="500">Players</text>
+      <text x="54" y="215" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">1B events/day</text>
+
+      <!-- Ingestion API -->
+      <rect x="120" y="170" width="90" height="44" rx="3" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="165" y="188" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">Ingestion</text>
+      <text x="165" y="201" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">API</text>
+      <text x="165" y="214" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">Validate + dedupe</text>
+
+      <!-- Kafka -->
+      <rect x="240" y="155" width="90" height="74" rx="3" fill="#ecf7f2" stroke="#b8e4d0" stroke-width="1.5"/>
+      <text x="285" y="178" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#1a6b4a" font-weight="500">Kafka</text>
+      <text x="285" y="193" text-anchor="middle" font-family="DM Mono,monospace" font-size="9" fill="#1a6b4a">video_events</text>
+      <text x="285" y="207" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">7-day retention</text>
+      <text x="285" y="220" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">Partitioned by video_id</text>
+
+      <!-- Speed layer label -->
+      <text x="370" y="56" font-family="DM Mono,monospace" font-size="10" fill="#8c8278" text-anchor="middle">SPEED LAYER (real-time)</text>
+      <line x1="248" y1="62" x2="510" y2="62" stroke="#d4ccc0" stroke-width="0.5" stroke-dasharray="3 3"/>
+
+      <!-- Flink -->
+      <rect x="360" y="80" width="100" height="50" rx="3" fill="#ecf0fd" stroke="#b8c8f0" stroke-width="1"/>
+      <text x="410" y="100" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a4a8c" font-weight="500">Apache Flink</text>
+      <text x="410" y="113" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Stream processing</text>
+      <text x="410" y="124" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">1-min tumbling window</text>
+
+      <!-- Redis -->
+      <rect x="490" y="80" width="100" height="50" rx="3" fill="#ecf0fd" stroke="#b8c8f0" stroke-width="1"/>
+      <text x="540" y="100" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a4a8c" font-weight="500">Redis</text>
+      <text x="540" y="113" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Real-time counters</text>
+      <text x="540" y="124" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">Recent 48 hrs</text>
+
+      <!-- Batch layer label -->
+      <text x="370" y="252" font-family="DM Mono,monospace" font-size="10" fill="#8c8278" text-anchor="middle">BATCH LAYER (historical)</text>
+      <line x1="248" y1="258" x2="510" y2="258" stroke="#d4ccc0" stroke-width="0.5" stroke-dasharray="3 3"/>
+
+      <!-- S3 -->
+      <rect x="360" y="270" width="100" height="50" rx="3" fill="#fdf0ec" stroke="#f0c4b8" stroke-width="1"/>
+      <text x="410" y="290" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c94a2a" font-weight="500">S3 Data Lake</text>
+      <text x="410" y="303" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Parquet, partitioned</text>
+      <text x="410" y="314" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">by date/video_id</text>
+
+      <!-- Spark -->
+      <rect x="490" y="270" width="100" height="50" rx="3" fill="#fdf0ec" stroke="#f0c4b8" stroke-width="1"/>
+      <text x="540" y="290" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c94a2a" font-weight="500">Spark Jobs</text>
+      <text x="540" y="303" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Hourly aggregation</text>
+      <text x="540" y="314" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">Star schema</text>
+
+      <!-- Redshift -->
+      <rect x="410" y="350" width="110" height="40" rx="3" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="465" y="366" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">Redshift DWH</text>
+      <text x="465" y="381" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">OLAP, columnar</text>
+
+      <!-- Serving Layer -->
+      <rect x="590" y="160" width="80" height="64" rx="3" fill="#f7ecfd" stroke="#deb8f0" stroke-width="1.5"/>
+      <text x="630" y="182" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7c2a8c" font-weight="500">Serving</text>
+      <text x="630" y="196" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7c2a8c" font-weight="500">Layer</text>
+      <text x="630" y="211" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">Merge real-time</text>
+      <text x="630" y="222" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">+ historical</text>
+
+      <!-- ARROWS -->
+      <line x1="94" y1="192" x2="118" y2="192" stroke="#b4a898" stroke-width="1" marker-end="url(#arr3)"/>
+      <line x1="210" y1="192" x2="238" y2="192" stroke="#b4a898" stroke-width="1" marker-end="url(#arr3)"/>
+      <line x1="330" y1="175" x2="358" y2="117" stroke="#1a4a8c" stroke-width="1" marker-end="url(#arr3b)"/>
+      <line x1="330" y1="210" x2="358" y2="290" stroke="#c94a2a" stroke-width="1" marker-end="url(#arr3)"/>
+      <line x1="460" y1="105" x2="488" y2="105" stroke="#1a4a8c" stroke-width="1" marker-end="url(#arr3b)"/>
+      <line x1="460" y1="295" x2="488" y2="295" stroke="#c94a2a" stroke-width="1" marker-end="url(#arr3)"/>
+      <line x1="540" y1="320" x2="490" y2="355" stroke="#c94a2a" stroke-width="1" marker-end="url(#arr3)"/>
+      <line x1="590" y1="192" x2="548" y2="125" stroke="#7c2a8c" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr3)"/>
+      <line x1="590" y1="196" x2="530" y2="368" stroke="#7c2a8c" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr3)"/>
+    </svg>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Must-Discuss Components</div>
+      <div class="comp-list">
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--data-bg);color:var(--data);">①</div>
+          <div class="comp-body"><div class="comp-name">Lambda vs Kappa architecture <span class="comp-must">MUST</span></div><div class="comp-why">Always compare both. Lambda = stream + batch. Kappa = stream only.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--data-bg);color:var(--data);">②</div>
+          <div class="comp-body"><div class="comp-name">Kafka as backbone <span class="comp-must">MUST</span></div><div class="comp-why">Durable, replayable event log. Both speed and batch layer read from it.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--data-bg);color:var(--data);">③</div>
+          <div class="comp-body"><div class="comp-name">OLAP vs OLTP distinction <span class="comp-must">MUST</span></div><div class="comp-why">Analytics needs columnar (Redshift/BigQuery), not row-store (Postgres).</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--data-bg);color:var(--data);">④</div>
+          <div class="comp-body"><div class="comp-name">Star schema for DWH <span class="comp-must">MUST</span></div><div class="comp-why">Fact + dimension tables. Enables fast aggregation queries.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:#f7f5f0;color:var(--ink3);">⑤</div>
+          <div class="comp-body"><div class="comp-name">Event deduplication <span class="comp-nice">GOOD</span></div><div class="comp-why">Bloom filter or Redis SET to deduplicate view events.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:#f7f5f0;color:var(--ink3);">⑥</div>
+          <div class="comp-body"><div class="comp-name">Data partitioning strategy <span class="comp-nice">GOOD</span></div><div class="comp-why">Partition S3/Redshift by date for efficient time-range scans.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Key Trade-off: Lambda vs Kappa</div>
+      <table class="tradeoff-table">
+        <tr><th>Approach</th><th>Pros</th><th>Cons</th></tr>
+        <tr>
+          <td>Lambda</td>
+          <td><span class="pro">✓ Batch SQL is easy for ad-hoc</span><br><span class="pro">✓ Fault tolerant</span></td>
+          <td><span class="con">✗ Two codepaths to maintain</span><br><span class="con">✗ Results can diverge</span></td>
+        </tr>
+        <tr class="pick">
+          <td>Lambda ← Pick</td>
+          <td><span class="pro">✓ Best for complex historical</span></td>
+          <td><span class="con">✗ More complex ops</span></td>
+        </tr>
+        <tr>
+          <td>Kappa</td>
+          <td><span class="pro">✓ Single codebase</span><br><span class="pro">✓ Simpler ops</span></td>
+          <td><span class="con">✗ Replay can take days</span><br><span class="con">✗ Stream SQL is harder</span></td>
+        </tr>
+      </table>
+      <div class="senior-signal" style="margin-top:12px;">
+        <div class="senior-label">Senior Signal — Say These Things</div>
+        <ul>
+          <li>Name OLAP explicitly and explain columnar storage</li>
+          <li>Discuss event deduplication strategy</li>
+          <li>Mention data partitioning for S3/Redshift</li>
+          <li>Bring up the Lambda codepath divergence risk</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 04 API DESIGN — PAYMENT API                        -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="type-section" id="api">
+  <div class="type-header">
+    <div class="type-num c-api">04</div>
+    <div class="type-meta">
+      <div class="type-kind c-api">API Design</div>
+      <div class="type-q">"Design a Payment Processing API"</div>
+      <div class="type-desc">Tests your understanding of idempotency, versioning, security, error contracts, and the nuance of designing APIs that are safe to retry and impossible to double-charge.</div>
+    </div>
+  </div>
+
+  <div class="card card-full card-accent-api" style="margin-bottom:16px;">
+    <div class="card-label">45-Minute Interview Script</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--api-bg);color:var(--api);">0–5</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 0–5 · REQUIREMENTS</div>
+          <div class="tl-title">Clarify consumers, actions, constraints</div>
+          <div class="tl-say">"API design questions need very clear scope. Who calls this API — mobile apps, third-party merchants, our own services? What operations: initiate payment, check status, refund? Does it talk directly to card networks or wrap a PSP like Stripe? What are the consistency guarantees — can we double-charge a user? I'll design a merchant-facing REST API for charging customers: create charge, get charge status, issue refund. The non-negotiable: exactly-once semantics — a network timeout must never result in a double charge."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--api-bg);color:var(--api);">5–20</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 5–20 · API CONTRACT DESIGN</div>
+          <div class="tl-title">Design the actual endpoints with full detail</div>
+          <div class="tl-say">"Let me design the core endpoints. POST /v1/charges — body: {amount, currency, customer_id, payment_method_id, metadata}. Header: Idempotency-Key: {uuid}. Returns 201 with {charge_id, status: 'pending'|'succeeded'|'failed', amount, created_at}. GET /v1/charges/{charge_id} — returns full charge object with status. POST /v1/charges/{charge_id}/refunds — body: {amount (optional, for partial)}, returns refund object. The idempotency key is critical — if the same key is sent twice, return the cached response of the first request, never process twice. Store idempotency_key → response_id in Redis for 24 hours."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--api-bg);color:var(--api);">20–32</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 20–32 · DEEP DIVE — IDEMPOTENCY</div>
+          <div class="tl-title">The mechanism behind safe retries</div>
+          <div class="tl-say">"The idempotency flow: client sends POST /charges with Idempotency-Key: abc-123. Server checks Redis — key not found, process the charge. Store {key: 'abc-123', charge_id: 'ch_xyz', status: 202} in Redis with 24hr TTL. Return response. Client times out, retries with same key. Server checks Redis — key found, return cached response directly. No second charge. The tricky edge case: the first request succeeded but died before writing to Redis. We handle this with a database-level unique constraint on idempotency_key — so even if we reprocess, the DB insert fails and we return the existing charge."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--api-bg);color:var(--api);">32–40</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 32–40 · SECURITY & VERSIONING</div>
+          <div class="tl-title">Auth, PCI-DSS, and API evolution</div>
+          <div class="tl-say">"Security: all payment APIs use API keys in the Authorization header — never in the URL. Key format: `Authorization: Bearer sk_live_abc123`. Rate limit by API key. Never log raw card data — we're PCI-DSS scoped. Versioning: I prefer URL versioning (/v1/) over header versioning for discoverability. Maintain at least 2 versions simultaneously. Deprecate with a Sunset header 12 months ahead. When you break a contract, that's a major version bump. Additive changes — new optional fields — are non-breaking and can go in the same version."</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--api-bg);color:var(--api);">40–45</div>
+        <div class="tl-body">
+          <div class="tl-time">MIN 40–45 · ERROR DESIGN & WEBHOOKS</div>
+          <div class="tl-title">Make errors as useful as the happy path</div>
+          <div class="tl-say">"Error contracts matter as much as success. Never return generic 500s. Return structured errors: {error: {code: 'card_declined', message: 'Your card was declined', decline_code: 'insufficient_funds', charge_id: 'ch_xyz'}}. HTTP 402 for payment failures, 422 for validation, 429 for rate limit. Webhooks: payments are async — the charge API returns 202 Accepted immediately. The actual result comes via webhook: POST to merchant's endpoint with {event: 'charge.succeeded', charge: {...}}. Include a webhook signature header so merchants can verify authenticity. Always retry webhooks with exponential backoff on 4xx/5xx from merchant."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAGRAM -->
+  <div class="diagram-wrap">
+    <div class="diagram-label">Architecture Diagram — Payment API Flow <span>Idempotency + Webhook Pattern</span></div>
+    <svg width="100%" viewBox="0 0 680 380" style="display:block;">
+      <defs>
+        <marker id="arr4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#b4a898" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr4p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#7c2a8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Merchant -->
+      <rect x="14" y="150" width="80" height="60" rx="3" fill="#f7ecfd" stroke="#deb8f0" stroke-width="1"/>
+      <text x="54" y="172" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7c2a8c" font-weight="500">Merchant</text>
+      <text x="54" y="186" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">API Key auth</text>
+      <text x="54" y="200" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="#7c2a8c">POST /charges</text>
+
+      <!-- API Gateway -->
+      <rect x="120" y="140" width="90" height="80" rx="3" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="165" y="164" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">API Gateway</text>
+      <text x="165" y="180" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Auth + rate limit</text>
+      <text x="165" y="194" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">TLS termination</text>
+      <text x="165" y="208" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">Request logging</text>
+
+      <!-- Idempotency Check -->
+      <rect x="240" y="100" width="100" height="60" rx="3" fill="#ecf7f2" stroke="#b8e4d0" stroke-width="1"/>
+      <text x="290" y="122" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a6b4a" font-weight="500">Idempotency</text>
+      <text x="290" y="136" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a6b4a" font-weight="500">Check</text>
+      <text x="290" y="150" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">Redis: key → resp</text>
+
+      <!-- Payment Service -->
+      <rect x="240" y="210" width="100" height="60" rx="3" fill="#f7ecfd" stroke="#deb8f0" stroke-width="1.5"/>
+      <text x="290" y="232" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7c2a8c" font-weight="500">Payment</text>
+      <text x="290" y="246" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7c2a8c" font-weight="500">Service</text>
+      <text x="290" y="260" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">Business logic</text>
+
+      <!-- Payments DB -->
+      <rect x="370" y="100" width="100" height="56" rx="3" fill="#f7f5f0" stroke="#d4ccc0" stroke-width="1"/>
+      <text x="420" y="120" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a443c" font-weight="500">Postgres</text>
+      <text x="420" y="134" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8c8278">charges table</text>
+      <text x="420" y="147" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">UNIQUE idempotency_key</text>
+
+      <!-- PSP -->
+      <rect x="370" y="210" width="100" height="56" rx="3" fill="#fdf0ec" stroke="#f0c4b8" stroke-width="1"/>
+      <text x="420" y="230" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c94a2a" font-weight="500">PSP / Card</text>
+      <text x="420" y="244" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c94a2a" font-weight="500">Network</text>
+      <text x="420" y="257" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">Stripe / Adyen</text>
+
+      <!-- Event queue -->
+      <rect x="490" y="150" width="90" height="56" rx="3" fill="#ecf7f2" stroke="#b8e4d0" stroke-width="1"/>
+      <text x="535" y="170" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a6b4a" font-weight="500">Event</text>
+      <text x="535" y="184" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#1a6b4a" font-weight="500">Queue</text>
+      <text x="535" y="198" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">charge.succeeded</text>
+
+      <!-- Webhook Service -->
+      <rect x="595" y="150" width="78" height="56" rx="3" fill="#f7ecfd" stroke="#deb8f0" stroke-width="1"/>
+      <text x="634" y="170" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7c2a8c" font-weight="500">Webhook</text>
+      <text x="634" y="184" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7c2a8c" font-weight="500">Service</text>
+      <text x="634" y="198" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">Retry + sign</text>
+
+      <!-- Merchant webhook callback -->
+      <rect x="490" y="290" width="185" height="44" rx="3" fill="#f7ecfd" stroke="#deb8f0" stroke-width="1" stroke-dasharray="4 2"/>
+      <text x="582" y="308" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7c2a8c">Merchant Callback URL</text>
+      <text x="582" y="325" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#8c8278">HMAC-SHA256 signature header</text>
+
+      <!-- ARROWS -->
+      <line x1="94" y1="180" x2="118" y2="180" stroke="#b4a898" stroke-width="1" marker-end="url(#arr4)"/>
+      <line x1="210" y1="165" x2="238" y2="138" stroke="#1a6b4a" stroke-width="1" marker-end="url(#arr4)"/>
+      <line x1="210" y1="195" x2="238" y2="240" stroke="#7c2a8c" stroke-width="1" marker-end="url(#arr4p)"/>
+      <line x1="340" y1="130" x2="368" y2="130" stroke="#b4a898" stroke-width="1" marker-end="url(#arr4)"/>
+      <line x1="340" y1="240" x2="368" y2="240" stroke="#b4a898" stroke-width="1" marker-end="url(#arr4)"/>
+      <line x1="470" y1="178" x2="488" y2="178" stroke="#1a6b4a" stroke-width="1" marker-end="url(#arr4)"/>
+      <line x1="580" y1="178" x2="594" y2="178" stroke="#b4a898" stroke-width="1" marker-end="url(#arr4)"/>
+      <line x1="634" y1="206" x2="614" y2="288" stroke="#7c2a8c" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr4p)"/>
+
+      <!-- cached return -->
+      <path d="M290 100 C290 60 165 60 165 140" fill="none" stroke="#1a6b4a" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr4)"/>
+      <text x="225" y="56" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#1a6b4a">cached → return immediately</text>
+
+      <!-- Unique key label -->
+      <text x="420" y="82" text-anchor="middle" font-family="DM Mono,monospace" font-size="9" fill="#1a6b4a">UNIQUE constraint</text>
+      <text x="420" y="94" text-anchor="middle" font-family="DM Mono,monospace" font-size="9" fill="#1a6b4a">prevents double-charge</text>
+    </svg>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-label">Must-Discuss Components</div>
+      <div class="comp-list">
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--api-bg);color:var(--api);">①</div>
+          <div class="comp-body"><div class="comp-name">Idempotency keys <span class="comp-must">MUST</span></div><div class="comp-why">Network retries must never cause double charges. Redis + DB unique constraint.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--api-bg);color:var(--api);">②</div>
+          <div class="comp-body"><div class="comp-name">Structured error contracts <span class="comp-must">MUST</span></div><div class="comp-why">Never return generic errors. Specific codes like `card_declined`, `insufficient_funds`.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--api-bg);color:var(--api);">③</div>
+          <div class="comp-body"><div class="comp-name">Webhooks for async results <span class="comp-must">MUST</span></div><div class="comp-why">Payments are async. Return 202, push result via signed webhook.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:var(--api-bg);color:var(--api);">④</div>
+          <div class="comp-body"><div class="comp-name">API versioning strategy <span class="comp-must">MUST</span></div><div class="comp-why">/v1/ URL versioning. Sunset header. Additive changes are non-breaking.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:#f7f5f0;color:var(--ink3);">⑤</div>
+          <div class="comp-body"><div class="comp-name">Webhook signature security <span class="comp-nice">GOOD</span></div><div class="comp-why">HMAC-SHA256 signature so merchants verify event authenticity.</div></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-icon" style="background:#f7f5f0;color:var(--ink3);">⑥</div>
+          <div class="comp-body"><div class="comp-name">Partial refunds & states <span class="comp-nice">GOOD</span></div><div class="comp-why">Design clear state machine: pending → succeeded/failed → refunded.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Key Trade-off: REST vs GraphQL vs gRPC</div>
+      <table class="tradeoff-table">
+        <tr><th>Style</th><th>Best for</th><th>Avoid when</th></tr>
+        <tr class="pick">
+          <td>REST ← Pick</td>
+          <td><span class="use">External merchants, browser clients, public APIs</span></td>
+          <td><span class="con">Complex nested queries, real-time</span></td>
+        </tr>
+        <tr>
+          <td>GraphQL</td>
+          <td><span class="use">Mobile apps need flexible queries, BFF layer</span></td>
+          <td><span class="con">File upload, caching is complex</span></td>
+        </tr>
+        <tr>
+          <td>gRPC</td>
+          <td><span class="use">Internal microservices, high throughput, streaming</span></td>
+          <td><span class="con">Browsers, external public APIs</span></td>
+        </tr>
+      </table>
+      <div class="senior-signal" style="margin-top:12px;">
+        <div class="senior-label">Senior Signal — Say These Things</div>
+        <ul>
+          <li>Explain idempotency mechanism end-to-end</li>
+          <li>Mention the Redis failure + DB unique constraint backup</li>
+          <li>Design error codes like a product, not just HTTP codes</li>
+          <li>Bring up webhook retry with exponential backoff</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINAL CHEAT SHEET -->
+  <div class="must-know" style="margin-top:16px;">
+    <div class="must-know-label">Universal Senior Engineer Checklist — Say These in Every Interview</div>
+    <ul>
+      <li>Always state trade-offs explicitly — "I chose X over Y because... the downside is..."</li>
+      <li>Bring up observability unprompted — metrics, distributed tracing, alerting</li>
+      <li>Discuss failure modes — what happens when each component goes down?</li>
+      <li>Mention data consistency model — eventual vs strong consistency and why</li>
+      <li>Talk about rollout strategy — dark launches, feature flags, gradual rollout</li>
+      <li>Raise security considerations — auth, encryption, PII handling, audit logs</li>
+    </ul>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<button class="back-top" id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<footer>
+  <div class="wrap">System Design Interview Guide · Senior Engineer Level · 4 Design Types · Built for 45-min Interviews</div>
+</footer>
+
+<script>
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior:'smooth', block:'start' });
+}
+window.addEventListener('scroll', () => {
+  document.getElementById('backTop').classList.toggle('visible', window.scrollY > 400);
+});
+</script>
+</body>
+</html>
