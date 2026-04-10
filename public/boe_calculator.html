@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Back-of-Envelope Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c10;
+  --surface: #0d1117;
+  --card: #111820;
+  --card2: #141c26;
+  --border: #1e2d3d;
+  --border2: #243447;
+  --accent: #00d4ff;
+  --accent2: #00ff9f;
+  --accent3: #ff6b35;
+  --warn: #ffd166;
+  --text: #cdd9e5;
+  --muted: #5a7a9a;
+  --dim: #2d4a66;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(0,212,255,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 30% at 80% 80%, rgba(0,255,159,0.03) 0%, transparent 60%);
+  pointer-events:none; z-index:0;
+}
+
+.wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px; position:relative; z-index:1; }
+
+/* HEADER */
+header { padding: 48px 0 32px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
+.header-top { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+.sys-badge {
+  font-family: var(--mono); font-size:10px; letter-spacing:0.15em; text-transform:uppercase;
+  color: var(--accent); background: rgba(0,212,255,0.08); border:1px solid rgba(0,212,255,0.2);
+  padding:4px 12px; border-radius:2px; margin-bottom:14px; display:inline-block;
+}
+h1 { font-family: var(--sans); font-size: clamp(26px,4vw,44px); font-weight:800; letter-spacing:-0.03em; line-height:1.05; color:#fff; }
+h1 span { color: var(--accent); }
+.subtitle { font-size:12px; color: var(--muted); margin-top:10px; max-width:480px; line-height:1.7; }
+
+.scale-selector { display:flex; gap:6px; flex-wrap:wrap; }
+.scale-btn {
+  font-family: var(--mono); font-size:11px; padding:7px 16px; border-radius:2px; cursor:pointer;
+  border:1px solid var(--border2); background:transparent; color: var(--muted); transition:all 0.2s;
+  letter-spacing:0.05em; text-transform:uppercase;
+}
+.scale-btn:hover { border-color: var(--accent); color: var(--accent); }
+.scale-btn.active { background: rgba(0,212,255,0.1); border-color: var(--accent); color: var(--accent); }
+
+/* SECTION HEADERS */
+.sec-label {
+  font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color: var(--muted);
+  display:flex; align-items:center; gap:10px; margin-bottom:18px; margin-top:36px;
+}
+.sec-label::before { content:''; width:3px; height:14px; background: var(--accent); border-radius:1px; }
+.sec-label span { flex:1; height:1px; background: var(--border); }
+
+/* INPUT GRID */
+.input-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:12px; margin-bottom:8px; }
+
+.input-block {
+  background: var(--card); border:1px solid var(--border); border-radius:3px; padding:16px;
+  transition: border-color 0.2s;
+}
+.input-block:focus-within { border-color: var(--accent); }
+.input-block label { display:block; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color: var(--muted); margin-bottom:8px; }
+.input-row { display:flex; align-items:center; gap:8px; }
+.num-input {
+  flex:1; background:transparent; border:none; outline:none;
+  font-family: var(--mono); font-size:18px; font-weight:500; color:#fff;
+  width:100%; min-width:0;
+}
+.num-input::placeholder { color: var(--dim); }
+.unit-tag {
+  font-size:10px; color: var(--muted); background: var(--card2); border:1px solid var(--border);
+  padding:3px 8px; border-radius:2px; white-space:nowrap; flex-shrink:0;
+}
+
+.action-row { display:flex; gap:10px; margin-top:28px; align-items:center; flex-wrap:wrap; }
+.calc-btn {
+  font-family: var(--sans); font-weight:700; font-size:13px; letter-spacing:0.05em;
+  background: var(--accent); color: #000; border:none; padding:12px 28px; border-radius:2px;
+  cursor:pointer; transition:all 0.2s; text-transform:uppercase;
+}
+.calc-btn:hover { background: #33ddff; transform:translateY(-1px); }
+.reset-btn {
+  font-family: var(--mono); font-size:11px; color: var(--muted); background:transparent;
+  border:1px solid var(--border); padding:12px 20px; border-radius:2px; cursor:pointer;
+  transition:all 0.2s; text-transform:uppercase; letter-spacing:0.08em;
+}
+.reset-btn:hover { border-color: var(--border2); color: var(--text); }
+
+/* RESULTS */
+#results { display:none; margin-top:40px; border-top:1px solid var(--border); padding-top:32px; }
+
+.results-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:12px; }
+.results-title { font-family: var(--sans); font-size:22px; font-weight:800; color:#fff; }
+.complexity-badge {
+  font-family: var(--mono); font-size:11px; padding:5px 14px; border-radius:2px;
+  letter-spacing:0.1em; text-transform:uppercase; font-weight:500;
+}
+.complexity-simple { background:rgba(0,255,159,0.1); color: var(--accent2); border:1px solid rgba(0,255,159,0.3); }
+.complexity-medium { background:rgba(255,209,102,0.1); color: var(--warn); border:1px solid rgba(255,209,102,0.3); }
+.complexity-complex { background:rgba(255,107,53,0.1); color: var(--accent3); border:1px solid rgba(255,107,53,0.3); }
+
+/* METRIC CARDS */
+.metrics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-bottom:28px; }
+.metric-card {
+  background: var(--card); border:1px solid var(--border); border-radius:3px; padding:18px 16px;
+  position:relative; overflow:hidden;
+}
+.metric-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+}
+.mc-blue::before { background: var(--accent); }
+.mc-green::before { background: var(--accent2); }
+.mc-orange::before { background: var(--accent3); }
+.mc-yellow::before { background: var(--warn); }
+.mc-purple::before { background: #c084fc; }
+.mc-teal::before { background: #2dd4bf; }
+.metric-label { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color: var(--muted); margin-bottom:6px; }
+.metric-value { font-size:22px; font-weight:700; color:#fff; line-height:1.1; margin-bottom:3px; }
+.metric-sub { font-size:11px; color: var(--muted); }
+
+/* SECTION PANELS */
+.panel {
+  background: var(--card); border:1px solid var(--border); border-radius:3px;
+  margin-bottom:12px; overflow:hidden;
+}
+.panel-head {
+  display:flex; align-items:center; justify-content:space-between; padding:14px 18px;
+  cursor:pointer; user-select:none; transition:background 0.15s;
+}
+.panel-head:hover { background: var(--card2); }
+.panel-title { font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color: var(--text); display:flex; align-items:center; gap:10px; }
+.panel-dot { width:6px; height:6px; border-radius:50%; }
+.panel-arrow { font-size:10px; color: var(--muted); transition:transform 0.2s; }
+.panel-arrow.open { transform:rotate(180deg); }
+.panel-body { padding:18px; border-top:1px solid var(--border); display:none; }
+.panel-body.open { display:block; }
+
+/* CALCULATION ROWS */
+.calc-table { width:100%; border-collapse:collapse; }
+.calc-table tr { border-bottom:1px solid rgba(30,45,61,0.5); }
+.calc-table tr:last-child { border-bottom:none; }
+.calc-table td { padding:9px 4px; font-size:12px; vertical-align:top; }
+.calc-table td:first-child { color: var(--muted); width:52%; }
+.calc-table td:last-child { color:#fff; font-weight:500; text-align:right; }
+.calc-table .formula { font-size:10px; color: var(--dim); display:block; margin-top:2px; }
+.calc-table .highlight { color: var(--accent); }
+.calc-table .warn { color: var(--warn); }
+.calc-table .good { color: var(--accent2); }
+
+/* DB & STRATEGY */
+.reco-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
+@media(max-width:560px) { .reco-grid { grid-template-columns:1fr; } }
+.reco-card {
+  background: var(--card2); border:1px solid var(--border2); border-radius:3px; padding:14px;
+}
+.reco-head { font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color: var(--muted); margin-bottom:8px; }
+.reco-val { font-size:14px; font-weight:700; color:#fff; margin-bottom:6px; }
+.reco-reason { font-size:11px; color: var(--muted); line-height:1.6; }
+.reco-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+.rtag {
+  font-size:10px; padding:2px 8px; border-radius:2px;
+  background:rgba(0,212,255,0.07); color: var(--accent); border:1px solid rgba(0,212,255,0.15);
+}
+
+/* SCALING SECTION */
+.scale-steps { display:flex; flex-direction:column; gap:8px; }
+.scale-step {
+  display:flex; gap:12px; align-items:flex-start; padding:10px 12px;
+  background: var(--card2); border:1px solid var(--border); border-radius:3px;
+}
+.step-num {
+  font-size:10px; color: var(--accent); background:rgba(0,212,255,0.1);
+  border:1px solid rgba(0,212,255,0.2); width:22px; height:22px;
+  display:flex; align-items:center; justify-content:center; border-radius:2px; flex-shrink:0;
+}
+.step-text { font-size:12px; color: var(--text); line-height:1.5; }
+.step-text strong { color: var(--accent2); font-weight:500; }
+
+/* ALERT BOX */
+.alert {
+  padding:12px 16px; border-radius:3px; font-size:12px; line-height:1.6;
+  margin-bottom:12px; display:flex; gap:10px; align-items:flex-start;
+}
+.alert-warn { background:rgba(255,209,102,0.07); border:1px solid rgba(255,209,102,0.2); color: var(--warn); }
+.alert-ok { background:rgba(0,255,159,0.06); border:1px solid rgba(0,255,159,0.2); color: var(--accent2); }
+.alert-danger { background:rgba(255,107,53,0.07); border:1px solid rgba(255,107,53,0.2); color: var(--accent3); }
+.alert-icon { font-size:14px; flex-shrink:0; }
+
+/* FOOTER */
+footer { border-top:1px solid var(--border); padding:28px 0; text-align:center; font-size:11px; color: var(--dim); margin-top:48px; }
+
+/* ANIMATE IN */
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+.animate-in { animation: fadeUp 0.35s ease forwards; }
+
+/* TOOLTIP */
+.tip { border-bottom:1px dashed var(--dim); cursor:help; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="header-top">
+    <div>
+      <div class="sys-badge">⬡ System Design Tool</div>
+      <h1>Back-of-Envelope<br><span>Calculator</span></h1>
+      <p class="subtitle">Enter your system requirements. Get instant QPS, storage, bandwidth, database choice, and scaling strategy — all calculated step by step.</p>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:0.1em;text-transform:uppercase;">System Scale</div>
+      <div class="scale-selector">
+        <button class="scale-btn active" data-scale="small" onclick="setScale('small',this)">Small</button>
+        <button class="scale-btn" data-scale="medium" onclick="setScale('medium',this)">Medium</button>
+        <button class="scale-btn" data-scale="large" onclick="setScale('large',this)">Large</button>
+        <button class="scale-btn" data-scale="complex" onclick="setScale('complex',this)">Complex</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- INPUT SECTION -->
+<div class="sec-label">01 &nbsp; User Base <span></span></div>
+<div class="input-grid">
+  <div class="input-block">
+    <label>Total registered users</label>
+    <div class="input-row">
+      <input class="num-input" id="totalUsers" type="number" placeholder="10000000" min="0">
+      <span class="unit-tag">users</span>
+    </div>
+  </div>
+  <div class="input-block">
+    <label>Daily active users (DAU %)</label>
+    <div class="input-row">
+      <input class="num-input" id="dauPct" type="number" placeholder="20" min="1" max="100">
+      <span class="unit-tag">% of total</span>
+    </div>
+  </div>
+  <div class="input-block">
+    <label>Monthly active users (MAU %)</label>
+    <div class="input-row">
+      <input class="num-input" id="mauPct" type="number" placeholder="60" min="1" max="100">
+      <span class="unit-tag">% of total</span>
+    </div>
+  </div>
+</div>
+
+<div class="sec-label">02 &nbsp; User Actions <span></span></div>
+<div class="input-grid">
+  <div class="input-block">
+    <label>Read actions per user/day</label>
+    <div class="input-row">
+      <input class="num-input" id="readsPerUser" type="number" placeholder="50" min="0">
+      <span class="unit-tag">reads/day</span>
+    </div>
+  </div>
+  <div class="input-block">
+    <label>Write actions per user/day</label>
+    <div class="input-row">
+      <input class="num-input" id="writesPerUser" type="number" placeholder="5" min="0">
+      <span class="unit-tag">writes/day</span>
+    </div>
+  </div>
+  <div class="input-block">
+    <label>Avg request payload size</label>
+    <div class="input-row">
+      <input class="num-input" id="payloadKB" type="number" placeholder="10" min="0">
+      <span class="unit-tag">KB/req</span>
+    </div>
+  </div>
+</div>
+
+<div class="sec-label">03 &nbsp; Storage Requirements <span></span></div>
+<div class="input-grid">
+  <div class="input-block">
+    <label>Avg record / object size</label>
+    <div class="input-row">
+      <input class="num-input" id="recordSizeKB" type="number" placeholder="1" min="0">
+      <span class="unit-tag">KB / record</span>
+    </div>
+  </div>
+  <div class="input-block">
+    <label>Data retention period</label>
+    <div class="input-row">
+      <input class="num-input" id="retentionYears" type="number" placeholder="5" min="1">
+      <span class="unit-tag">years</span>
+    </div>
+  </div>
+  <div class="input-block">
+    <label>Media / blob storage ratio</label>
+    <div class="input-row">
+      <input class="num-input" id="mediaRatio" type="number" placeholder="10" min="0" max="100">
+      <span class="unit-tag">% of writes</span>
+    </div>
+  </div>
+  <div class="input-block">
+    <label>Avg media file size</label>
+    <div class="input-row">
+      <input class="num-input" id="mediaSizeMB" type="number" placeholder="2" min="0">
+      <span class="unit-tag">MB / file</span>
+    </div>
+  </div>
+</div>
+
+<div class="sec-label">04 &nbsp; Availability &amp; Performance <span></span></div>
+<div class="input-grid">
+  <div class="input-block">
+    <label>Required availability (SLA)</label>
+    <div class="input-row">
+      <input class="num-input" id="sla" type="number" placeholder="99.9" min="90" max="99.9999" step="0.001">
+      <span class="unit-tag">% uptime</span>
+    </div>
+  </div>
+  <div class="input-block">
+    <label>Peak multiplier</label>
+    <div class="input-row">
+      <input class="num-input" id="peakMult" type="number" placeholder="3" min="1" max="20">
+      <span class="unit-tag">× avg QPS</span>
+    </div>
+  </div>
+  <div class="input-block">
+    <label>Cache hit rate</label>
+    <div class="input-row">
+      <input class="num-input" id="cacheHit" type="number" placeholder="80" min="0" max="100">
+      <span class="unit-tag">%</span>
+    </div>
+  </div>
+</div>
+
+<div class="action-row">
+  <button class="calc-btn" onclick="calculate()">Calculate →</button>
+  <button class="reset-btn" onclick="resetAll()">Reset</button>
+  <span style="font-size:11px;color:var(--muted);" id="scale-hint">Scale: Small — fill in your numbers above</span>
+</div>
+
+<!-- RESULTS -->
+<div id="results">
+
+  <div class="results-header">
+    <div class="results-title">Calculation Results</div>
+    <div id="complexity-badge" class="complexity-badge"></div>
+  </div>
+
+  <!-- KEY METRICS -->
+  <div class="metrics-grid" id="metricsGrid"></div>
+
+  <!-- TRAFFIC & QPS -->
+  <div class="panel" id="panelQPS">
+    <div class="panel-head" onclick="togglePanel('pQPS')">
+      <div class="panel-title"><div class="panel-dot" style="background:var(--accent)"></div>Traffic &amp; QPS Calculation</div>
+      <div class="panel-arrow open" id="arrpQPS">▼</div>
+    </div>
+    <div class="panel-body open" id="pQPS">
+      <table class="calc-table" id="qpsTable"></table>
+    </div>
+  </div>
+
+  <!-- STORAGE -->
+  <div class="panel" id="panelStorage">
+    <div class="panel-head" onclick="togglePanel('pStorage')">
+      <div class="panel-title"><div class="panel-dot" style="background:var(--accent2)"></div>Storage Calculation</div>
+      <div class="panel-arrow open" id="arrpStorage">▼</div>
+    </div>
+    <div class="panel-body open" id="pStorage">
+      <table class="calc-table" id="storageTable"></table>
+    </div>
+  </div>
+
+  <!-- BANDWIDTH -->
+  <div class="panel" id="panelBW">
+    <div class="panel-head" onclick="togglePanel('pBW')">
+      <div class="panel-title"><div class="panel-dot" style="background:var(--accent3)"></div>Bandwidth &amp; Network</div>
+      <div class="panel-arrow" id="arrpBW">▼</div>
+    </div>
+    <div class="panel-body" id="pBW">
+      <table class="calc-table" id="bwTable"></table>
+    </div>
+  </div>
+
+  <!-- DB CHOICE -->
+  <div class="panel" id="panelDB">
+    <div class="panel-head" onclick="togglePanel('pDB')">
+      <div class="panel-title"><div class="panel-dot" style="background:var(--warn)"></div>Database &amp; Storage Strategy</div>
+      <div class="panel-arrow open" id="arrpDB">▼</div>
+    </div>
+    <div class="panel-body open" id="pDB">
+      <div id="dbContent"></div>
+    </div>
+  </div>
+
+  <!-- SCALING -->
+  <div class="panel" id="panelScale">
+    <div class="panel-head" onclick="togglePanel('pScale')">
+      <div class="panel-title"><div class="panel-dot" style="background:#c084fc)"></div>Scaling Strategy</div>
+      <div class="panel-arrow open" id="arrpScale">▼</div>
+    </div>
+    <div class="panel-body open" id="pScale">
+      <div id="scaleContent"></div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div id="alertsBox" style="margin-top:16px;"></div>
+
+</div>
+
+<footer>Back-of-Envelope System Design Calculator &nbsp;·&nbsp; For interview preparation</footer>
+</div>
+
+<script>
+let currentScale = 'small';
+
+const scaleDefaults = {
+  small:   { totalUsers:100000,  dauPct:20, mauPct:60, readsPerUser:20,  writesPerUser:3,  payloadKB:5,   recordSizeKB:1,   retentionYears:3, mediaRatio:5,  mediaSizeMB:1,  sla:99.9,   peakMult:3, cacheHit:70 },
+  medium:  { totalUsers:5000000, dauPct:20, mauPct:60, readsPerUser:30,  writesPerUser:5,  payloadKB:10,  recordSizeKB:2,   retentionYears:5, mediaRatio:10, mediaSizeMB:2,  sla:99.9,   peakMult:3, cacheHit:80 },
+  large:   { totalUsers:50000000,dauPct:20, mauPct:60, readsPerUser:50,  writesPerUser:8,  payloadKB:15,  recordSizeKB:2,   retentionYears:5, mediaRatio:20, mediaSizeMB:5,  sla:99.99,  peakMult:4, cacheHit:85 },
+  complex: { totalUsers:200000000,dauPct:20,mauPct:60, readsPerUser:100, writesPerUser:15, payloadKB:20,  recordSizeKB:3,   retentionYears:7, mediaRatio:30, mediaSizeMB:10, sla:99.999, peakMult:5, cacheHit:90 }
+};
+
+function setScale(scale, btn) {
+  currentScale = scale;
+  document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = scaleDefaults[scale];
+  Object.keys(d).forEach(k => { const el = document.getElementById(k); if(el) el.value = d[k]; });
+  const hints = { small:'Small — startup / MVP (< 1M users)', medium:'Medium — growth stage (1M–10M users)', large:'Large — scaled product (10M–100M users)', complex:'Complex — hyperscale (100M+ users)' };
+  document.getElementById('scale-hint').textContent = 'Scale: ' + hints[scale];
+}
+
+function resetAll() {
+  document.querySelectorAll('.num-input').forEach(i => i.value = '');
+  document.getElementById('results').style.display = 'none';
+}
+
+function fmt(n) {
+  if (n === undefined || n === null || isNaN(n)) return '—';
+  if (n >= 1e12) return (n/1e12).toFixed(2) + ' T';
+  if (n >= 1e9)  return (n/1e9).toFixed(2) + ' B';
+  if (n >= 1e6)  return (n/1e6).toFixed(2) + ' M';
+  if (n >= 1e3)  return (n/1e3).toFixed(1) + ' K';
+  return n.toFixed(n < 10 ? 2 : 0);
+}
+function fmtStorage(gb) {
+  if (gb >= 1024*1024) return (gb/(1024*1024)).toFixed(2) + ' PB';
+  if (gb >= 1024) return (gb/1024).toFixed(2) + ' TB';
+  return gb.toFixed(2) + ' GB';
+}
+function fmtBW(mbps) {
+  if (mbps >= 1000) return (mbps/1000).toFixed(2) + ' Gbps';
+  return mbps.toFixed(2) + ' Mbps';
+}
+function nines(sla) {
+  if (sla >= 99.999) return '5 nines';
+  if (sla >= 99.99)  return '4 nines';
+  if (sla >= 99.9)   return '3 nines';
+  if (sla >= 99)     return '2 nines';
+  return '1 nine';
+}
+function downtimePerYear(sla) {
+  const mins = (1 - sla/100) * 525600;
+  if (mins < 1) return (mins*60).toFixed(1) + ' sec/yr';
+  if (mins < 60) return mins.toFixed(1) + ' min/yr';
+  return (mins/60).toFixed(1) + ' hrs/yr';
+}
+
+function row(label, value, formula, cls) {
+  return `<tr><td>${label}${formula ? `<span class="formula">${formula}</span>` : ''}</td><td class="${cls||''}">${value}</td></tr>`;
+}
+
+function togglePanel(id) {
+  const body = document.getElementById(id);
+  const arr = document.getElementById('arr' + id);
+  body.classList.toggle('open');
+  arr.classList.toggle('open');
+}
+
+function calculate() {
+  const g = id => parseFloat(document.getElementById(id).value) || 0;
+  const totalUsers   = g('totalUsers');
+  const dauPct       = g('dauPct');
+  const mauPct       = g('mauPct');
+  const readsPerUser = g('readsPerUser');
+  const writesPerUser= g('writesPerUser');
+  const payloadKB    = g('payloadKB');
+  const recordSizeKB = g('recordSizeKB');
+  const retentionYrs = g('retentionYears') || 5;
+  const mediaRatioPct= g('mediaRatio');
+  const mediaSizeMB  = g('mediaSizeMB');
+  const sla          = g('sla') || 99.9;
+  const peakMult     = g('peakMult') || 3;
+  const cacheHitPct  = g('cacheHit') || 80;
+
+  if (!totalUsers) { alert('Please enter at least the number of users.'); return; }
+
+  // USER MATH
+  const dau = totalUsers * (dauPct / 100);
+  const mau = totalUsers * (mauPct / 100);
+
+  // TRAFFIC
+  const totalReadsPerDay  = dau * readsPerUser;
+  const totalWritesPerDay = dau * writesPerUser;
+  const totalReqPerDay    = totalReadsPerDay + totalWritesPerDay;
+  const avgQPS            = totalReqPerDay / 86400;
+  const readQPS           = totalReadsPerDay / 86400;
+  const writeQPS          = totalWritesPerDay / 86400;
+  const peakQPS           = avgQPS * peakMult;
+  const peakReadQPS       = readQPS * peakMult;
+  const peakWriteQPS      = writeQPS * peakMult;
+  const readWriteRatio    = writesPerUser > 0 ? (readsPerUser / writesPerUser).toFixed(0) : '∞';
+  const cacheHit          = cacheHitPct / 100;
+  const dbReadQPS         = readQPS * (1 - cacheHit);
+
+  // BANDWIDTH
+  const avgBWMBps  = (avgQPS * payloadKB) / 1024;
+  const peakBWMBps = (peakQPS * payloadKB) / 1024;
+  const avgBWMbps  = avgBWMBps * 8;
+  const peakBWMbps = peakBWMBps * 8;
+
+  // STORAGE
+  const writesPerDay      = totalWritesPerDay;
+  const metaStoragePerDay = (writesPerDay * recordSizeKB) / (1024 * 1024); // GB
+  const mediaWritesPerDay = writesPerDay * (mediaRatioPct / 100);
+  const mediaStoragePerDay= (mediaWritesPerDay * mediaSizeMB * 1024) / (1024 * 1024); // GB (mediaSizeMB → KB → GB)
+  const totalStoragePerDay= metaStoragePerDay + mediaStoragePerDay;
+  const totalStorageTotal = totalStoragePerDay * 365 * retentionYrs;
+  const storageWithReplic = totalStorageTotal * 3; // 3x replication
+
+  // CACHE
+  const hotDataPct   = 0.2;
+  const totalDataGB  = totalStorageTotal;
+  const cacheNeeded  = totalDataGB * hotDataPct;
+
+  // SERVERS
+  const qpsPerServer = 1000;
+  const serversNeeded= Math.ceil(peakQPS / qpsPerServer);
+  const dbServers    = Math.max(1, Math.ceil(dbReadQPS / 5000));
+
+  // COMPLEXITY
+  let complexity = 'simple';
+  if (dau > 10e6 || peakQPS > 50000 || totalStorageTotal > 10000) complexity = 'complex';
+  else if (dau > 1e6 || peakQPS > 5000 || totalStorageTotal > 500) complexity = 'medium';
+
+  // DB CHOICE
+  let primaryDB = '', primaryReason = '', primaryTags = [];
+  let secondaryDB = '', secondaryReason = '', secondaryTags = [];
+  let blobStore = '', blobReason = '';
+  let cacheDB = 'Redis', cacheReason = '';
+
+  if (writeQPS > 10000 || totalStorageTotal > 50000 || dau > 50e6) {
+    primaryDB = 'Apache Cassandra'; primaryTags = ['Wide-column','AP','Linear scale'];
+    primaryReason = 'Handles massive write throughput with linear horizontal scalability. Partition by user_id for fast lookups.';
+  } else if (writeQPS > 1000 || totalStorageTotal > 1000) {
+    primaryDB = 'MongoDB'; primaryTags = ['Document','Flexible schema','Horizontal'];
+    primaryReason = 'Flexible document model suits evolving data. Shards well for your scale with good write performance.';
+  } else {
+    primaryDB = 'PostgreSQL'; primaryTags = ['ACID','Relational','Reliable'];
+    primaryReason = 'Strong ACID guarantees, excellent query flexibility, and handles your current scale well with read replicas.';
+  }
+
+  if (readQPS > 5000) {
+    secondaryDB = 'Elasticsearch'; secondaryTags = ['Full-text search','Analytics'];
+    secondaryReason = 'High read QPS with search/filter requirements. Use as a read replica for search-heavy features.';
+  } else if (dau > 5e6) {
+    secondaryDB = 'Redis Cluster'; secondaryTags = ['Cache','Pub/Sub','Sorted sets'];
+    secondaryReason = 'Session storage, leaderboards, and feed caching. Reduce DB read load significantly.';
+  }
+
+  if (mediaSizeMB > 0 && mediaRatioPct > 0) {
+    blobStore = 'AWS S3 + CloudFront CDN';
+    blobReason = `${fmtStorage(mediaStoragePerDay * 365 * retentionYrs)} of media storage. S3 for durability, CloudFront edges for low-latency delivery globally.`;
+  }
+
+  cacheReason = `Cache ${cacheHitPct}% of reads → reduces DB read QPS from ${fmt(readQPS)} to ${fmt(dbReadQPS)}. Needs ~${fmtStorage(cacheNeeded)} RAM.`;
+
+  // SCALING STRATEGY
+  const scalingSteps = [];
+  scalingSteps.push({ n:'1', t:'Horizontal scaling with load balancer', d:`Deploy <strong>${serversNeeded} app servers</strong> behind an L7 load balancer (Nginx/ALB). Use Least Connections algorithm given variable request times.` });
+  scalingSteps.push({ n:'2', t:'Read replicas for database', d:`Add <strong>${Math.max(2, dbServers)} read replicas</strong> to handle read QPS of ${fmt(dbReadQPS)} hitting the DB after cache misses.` });
+  scalingSteps.push({ n:'3', t:'Caching layer', d:`Redis cluster with <strong>${fmtStorage(cacheNeeded)}</strong> RAM to absorb ${cacheHitPct}% of read traffic. Use LRU eviction + cache-aside pattern.` });
+  if (writeQPS > 500) scalingSteps.push({ n:'4', t:'Message queue for async writes', d:`Kafka or SQS to buffer <strong>${fmt(writeQPS)} writes/sec</strong>. Decouple write spikes from DB. Consumers process at their own pace.` });
+  if (totalStorageTotal > 1000) scalingSteps.push({ n:'5', t:'Database sharding', d:`Shard by <strong>user_id (hash-based)</strong> across ${Math.ceil(totalStorageTotal / 2000)} shards. Each shard holds ~2 TB. Use consistent hashing for rebalancing.` });
+  if (mediaSizeMB > 0) scalingSteps.push({ n:'6', t:'CDN for static assets', d:`Offload media to <strong>CloudFront CDN</strong>. ~80% of media requests served from edge. Reduces origin bandwidth by ${fmt((peakBWMbps * 0.8))} Mbps.` });
+  scalingSteps.push({ n:'7', t:'Monitoring & auto-scaling', d:`Set auto-scale triggers at <strong>70% CPU / 80% memory</strong>. Alert on p99 latency > 200ms. Use distributed tracing (Jaeger/Zipkin).` });
+
+  // ALERTS
+  const alerts = [];
+  if (peakQPS > 100000) alerts.push({ type:'danger', msg:`Peak QPS of ${fmt(peakQPS)} is hyperscale territory. Consider microservices architecture and multi-region deployment.` });
+  if (storageWithReplic > 1024 * 100) alerts.push({ type:'warn', msg:`Storage with 3× replication = ${fmtStorage(storageWithReplic)}. Plan tiered storage — hot (SSD) / warm (HDD) / cold (Glacier).` });
+  if (writeQPS > readQPS * 0.5) alerts.push({ type:'warn', msg:`Write-heavy system (ratio ${readWriteRatio}:1). Consider write-optimized DB (Cassandra/HBase) and event sourcing pattern.` });
+  if (sla >= 99.99) alerts.push({ type:'warn', msg:`${nines(sla)} SLA requires multi-AZ deployment, automated failover, and chaos engineering practices.` });
+  if (cacheHitPct < 60) alerts.push({ type:'warn', msg:`Cache hit rate of ${cacheHitPct}% is low. Review your caching strategy — most systems target 80–95%.` });
+  if (peakQPS < 100) alerts.push({ type:'ok', msg:`Low traffic system. Single server + managed DB (RDS/Supabase) is sufficient. Focus on code quality over infrastructure.` });
+
+  // RENDER
+  const res = document.getElementById('results');
+  res.style.display = 'block';
+  res.classList.add('animate-in');
+
+  document.getElementById('complexity-badge').className = `complexity-badge complexity-${complexity}`;
+  document.getElementById('complexity-badge').textContent = complexity === 'simple' ? 'Simple System' : complexity === 'medium' ? 'Medium Complexity' : 'High Complexity';
+
+  document.getElementById('metricsGrid').innerHTML = `
+    <div class="metric-card mc-blue"><div class="metric-label">DAU</div><div class="metric-value">${fmt(dau)}</div><div class="metric-sub">${fmt(mau)} MAU</div></div>
+    <div class="metric-card mc-blue"><div class="metric-label">Avg QPS</div><div class="metric-value">${fmt(avgQPS)}</div><div class="metric-sub">${fmt(readQPS)} read / ${fmt(writeQPS)} write</div></div>
+    <div class="metric-card mc-orange"><div class="metric-label">Peak QPS</div><div class="metric-value">${fmt(peakQPS)}</div><div class="metric-sub">${peakMult}× multiplier applied</div></div>
+    <div class="metric-card mc-green"><div class="metric-label">Total Storage</div><div class="metric-value">${fmtStorage(totalStorageTotal)}</div><div class="metric-sub">${fmtStorage(storageWithReplic)} with 3× replication</div></div>
+    <div class="metric-card mc-yellow"><div class="metric-label">Peak Bandwidth</div><div class="metric-value">${fmtBW(peakBWMbps)}</div><div class="metric-sub">${fmtBW(avgBWMbps)} average</div></div>
+    <div class="metric-card mc-teal"><div class="metric-label">App Servers</div><div class="metric-value">${serversNeeded}</div><div class="metric-sub">at ${fmt(qpsPerServer)} QPS each</div></div>
+  `;
+
+  document.getElementById('qpsTable').innerHTML =
+    row('Total registered users', fmt(totalUsers)) +
+    row('Daily active users (DAU)', fmt(dau), `${totalUsers.toLocaleString()} × ${dauPct}%`, 'highlight') +
+    row('Monthly active users (MAU)', fmt(mau), `${totalUsers.toLocaleString()} × ${mauPct}%`) +
+    row('Read requests / day', fmt(totalReadsPerDay), `${fmt(dau)} DAU × ${readsPerUser} reads`) +
+    row('Write requests / day', fmt(totalWritesPerDay), `${fmt(dau)} DAU × ${writesPerUser} writes`) +
+    row('Total requests / day', fmt(totalReqPerDay), 'reads + writes') +
+    row('Read : Write ratio', `${readWriteRatio} : 1`) +
+    row('Average Read QPS', fmt(readQPS), 'reads/day ÷ 86,400', 'highlight') +
+    row('Average Write QPS', fmt(writeQPS), 'writes/day ÷ 86,400', 'highlight') +
+    row('Average Total QPS', fmt(avgQPS), 'total req/day ÷ 86,400', 'highlight') +
+    row(`Peak QPS (${peakMult}× multiplier)`, fmt(peakQPS), `avg QPS × ${peakMult}`, 'warn') +
+    row(`Peak Read QPS`, fmt(peakReadQPS), '') +
+    row(`Peak Write QPS`, fmt(peakWriteQPS), '') +
+    row(`DB Read QPS (after ${cacheHitPct}% cache)`, fmt(dbReadQPS), `read QPS × ${100 - cacheHitPct}%`, 'good');
+
+  document.getElementById('storageTable').innerHTML =
+    row('Writes per day', fmt(writesPerDay)) +
+    row('Record size', `${recordSizeKB} KB`) +
+    row('Metadata storage / day', fmtStorage(metaStoragePerDay), `${fmt(writesPerDay)} × ${recordSizeKB} KB`) +
+    row('Media writes / day', fmt(mediaWritesPerDay), `${mediaRatioPct}% of writes`) +
+    row('Media storage / day', fmtStorage(mediaStoragePerDay), `${fmt(mediaWritesPerDay)} × ${mediaSizeMB} MB`) +
+    row('Total storage / day', fmtStorage(totalStoragePerDay), 'metadata + media', 'highlight') +
+    row('Total storage / year', fmtStorage(totalStoragePerDay * 365)) +
+    row(`Total over ${retentionYrs} yrs`, fmtStorage(totalStorageTotal), `daily × 365 × ${retentionYrs}`, 'highlight') +
+    row('With 3× replication', fmtStorage(storageWithReplic), '×3 for fault tolerance', 'warn') +
+    row('Cache size needed (20% hot)', fmtStorage(cacheNeeded), '20% of total dataset');
+
+  document.getElementById('bwTable').innerHTML =
+    row('Avg payload size', `${payloadKB} KB`) +
+    row('Avg inbound bandwidth', fmtBW(avgBWMbps), `${fmt(avgQPS)} QPS × ${payloadKB} KB × 8`) +
+    row('Peak inbound bandwidth', fmtBW(peakBWMbps), `${fmt(peakQPS)} peak QPS × ${payloadKB} KB × 8`, 'warn') +
+    row('Avg outbound bandwidth', fmtBW(avgBWMbps * 2), 'assume 2× inbound for responses') +
+    row('Peak outbound bandwidth', fmtBW(peakBWMbps * 2), '', 'warn') +
+    row('CDN offload (80%)', fmtBW(peakBWMbps * 0.8), 'media/static via CDN edge', 'good') +
+    row('Origin bandwidth after CDN', fmtBW(peakBWMbps * 0.2), '20% hits origin', 'good');
+
+  document.getElementById('dbContent').innerHTML = `
+    <div class="reco-grid">
+      <div class="reco-card">
+        <div class="reco-head">Primary database</div>
+        <div class="reco-val">${primaryDB}</div>
+        <div class="reco-reason">${primaryReason}</div>
+        <div class="reco-tags">${primaryTags.map(t=>`<span class="rtag">${t}</span>`).join('')}</div>
+      </div>
+      ${secondaryDB ? `
+      <div class="reco-card">
+        <div class="reco-head">Secondary / Read layer</div>
+        <div class="reco-val">${secondaryDB}</div>
+        <div class="reco-reason">${secondaryReason}</div>
+        <div class="reco-tags">${secondaryTags.map(t=>`<span class="rtag">${t}</span>`).join('')}</div>
+      </div>` : ''}
+      <div class="reco-card">
+        <div class="reco-head">Cache layer</div>
+        <div class="reco-val">${cacheDB}</div>
+        <div class="reco-reason">${cacheReason}</div>
+        <div class="reco-tags"><span class="rtag">In-memory</span><span class="rtag">LRU eviction</span><span class="rtag">Cache-aside</span></div>
+      </div>
+      ${blobStore ? `
+      <div class="reco-card">
+        <div class="reco-head">Blob / media storage</div>
+        <div class="reco-val">${blobStore}</div>
+        <div class="reco-reason">${blobReason}</div>
+        <div class="reco-tags"><span class="rtag">Object store</span><span class="rtag">CDN</span><span class="rtag">Durable</span></div>
+      </div>` : ''}
+    </div>
+    <div style="margin-top:14px;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:3px;">
+      <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Availability target</div>
+      <div style="font-size:13px;color:var(--text);">${nines(sla)} &nbsp;(${sla}%) &nbsp;→&nbsp; Downtime: <span style="color:var(--warn)">${downtimePerYear(sla)}</span></div>
+    </div>
+  `;
+
+  document.getElementById('scaleContent').innerHTML = `
+    <div class="scale-steps">${scalingSteps.map(s => `
+      <div class="scale-step">
+        <div class="step-num">${s.n}</div>
+        <div><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">${s.t}</div>
+        <div class="step-text">${s.d}</div></div>
+      </div>`).join('')}
+    </div>`;
+
+  document.getElementById('alertsBox').innerHTML = alerts.map(a =>
+    `<div class="alert alert-${a.type}"><span class="alert-icon">${a.type==='ok'?'✓':a.type==='danger'?'⚠':'→'}</span><span>${a.msg}</span></div>`
+  ).join('');
+
+  res.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// Load medium scale defaults on page load
+window.onload = () => setScale('medium', document.querySelector('[data-scale="medium"]'));
+</script>
+</body>
+</html>
